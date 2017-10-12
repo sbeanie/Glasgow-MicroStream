@@ -1,134 +1,137 @@
-import random
 
+class Topology:
 
-class Supplier:
     def __init__(self):
-        pass
+        self.suppliers = []
+        return
 
-    def get(self): pass
+    def add_stream(self, supplier):
+        self.suppliers.append(supplier)
+        return
+
+    def run(self):
+        for supplier in self.suppliers:
+            supplier.start()
+
+    def print_topology(self):
+        for supplier in self.suppliers:
+            print ("Supplier" + str(supplier.__class__))
+            for subsciber in supplier.subscribers:
+                print(subsciber.__class__)
 
 
 class Stream:
 
-    def __init__(self, supplier):
-        self.supplier = supplier
+    def __init__(self):
+        self.subscribers = []
+        return
 
-    def get(self):
-        return self.supplier.get()
+    def subscribe(self, stream):
+        self.subscribers.append(stream)
 
-    def printStream(self): pass
+    def receive(self, value):
+        self.push(value)
 
-    def split(self, values, f):
-        sc = StreamContainer(self)
-        streams = []
-        for num in range(0, values):
-            streams.append(SplitStream(sc, num, f))
-        return streams
+    def push(self, value):
+        for subscriber in self.subscribers:
+            subscriber.receive(value)
 
     def filter(self, f):
-        return FilterStream(self, f)
+        filter_stream = FilterStream(f)
+        self.subscribe(filter_stream)
+        return filter_stream
+
+    def sink(self, sink_function):
+        sink_step = SinkStep(sink_function)
+        self.subscribe(sink_step)
+        return sink_step
+
+    def split(self, number_of_splits, func_val_to_int):
+        split_streams = []
+        for num in range(0, number_of_splits):
+            split_streams.append(Stream())
+        split_stream = SplitStream(split_streams, func_val_to_int)
+        self.subscribe(split_stream)
+        return split_streams
+
+    def union(self, streams):
+        union_stream = Stream()
+
+        try:
+            iter(streams)
+            for stream in streams:
+                stream.subscribe(union_stream)
+        except TypeError:
+            streams.subscribe(union_stream)
+
+        self.subscribe(union_stream)
+        return union_stream
 
 
-class StreamContainer:
-    vals = []
+class Source(Stream):
 
-    def __init__(self, stream):
-        self.stream = stream
+    def __init__(self, values):
+        self.values = values
+        Stream.__init__(self)
 
-    def get(self, num, f):
-        for val in self.vals:
-            if f(val) == num:
-                self.vals.remove(val)
-                return val
-        nextval = self.stream.get()
-        while nextval is not None:
-            currentval = nextval
-            if f(currentval) == num:
-                return currentval
-            else:
-                self.vals.append(currentval)
-                nextval = self.stream.get()
-
-
-class SplitStream(Stream):
-
-    def __init__(self, streamcontainer, num, f):
-        self.streamcontainer = streamcontainer
-        self.num = num
-        self.f = f
-
-    def get(self):
-        return self.streamcontainer.get(self.num, self.f)
-
-    def printStream(self):
-        nextval = self.get()
-        while nextval is not None:
-            currentval = nextval
-            nextval = self.get()
-            print currentval
+    def start(self):
+        for value in self.values:
+            self.push(value)
 
 
 class FilterStream(Stream):
 
-    def __init__(self, stream, f):
-        self.stream = stream
-        self.f = f
+    def __init__(self, filter_function):
+        Stream.__init__(self)
+        self.filter_function = filter_function
 
-    def get(self):
-        nextval = self.stream.get()
-        while nextval is not None:
-            currentval = nextval
-            if self.f(currentval):
-                 return currentval
-            nextval = self.stream.get()
-        return None
-
-    def printStream(self):
-        nextval = self.get()
-        while nextval is not None:
-            currentval = nextval
-            nextval = self.get()
-            print currentval
+    def receive(self, value):
+        if self.filter_function(value):
+            self.push(value)
 
 
-class RandomSupplier(Supplier):
+class SplitStream(Stream):
 
-    def __init__(self):
-        Supplier.__init__(self)
+    def __init__(self, streams, func_val_to_int):
+        self.streams = streams
+        self.func_val_to_int = func_val_to_int
+        Stream.__init__(self)
 
-    def get(self):
-        return random.randint(0,10)
+    def receive(self, value):
+        n = self.func_val_to_int(value)
+        self.streams[n].push(value)
 
 
-class FixedDataSupplier(Supplier):
+class SinkStep(Stream):
 
-    vals = [0,1,2,3,4,5,6,7,8,9,10]
+    def __init__(self, sink_function):
+        self.sink_function = sink_function
+        Stream.__init__(self)
 
-    def __init__(self):
-        Supplier.__init__(self)
+    def receive(self, value):
+        self.sink_function(value)
 
-    def get(self):
-        if len(self.vals) is 0:
-            return None
-        else:
-            val = self.vals[0]
-            self.vals.remove(val)
-            return val
 
-randomSource = RandomSupplier()
-fixedDataSource = FixedDataSupplier()
+def print_val(value):
+    print value
 
-s = Stream(fixedDataSource)
 
-streams = s.split(2, lambda x: x % 2 == 0)
+topology = Topology()
 
-streams[1].printStream()
-print "Stream finished"
-streams[0].printStream()
+source = Source([1, 2, 3, 4, 5])
 
-b = Stream(randomSource)
+source2 = Source([6, 7, 8, 9, 10])
 
-filter1 = b.filter(lambda x: x % 2 == 0)
-filter2 = filter1.filter(lambda x: x > 6)
-filter2.printStream()
+topology.add_stream(source)
+topology.add_stream(source2)
+
+split_streams = source.split(2, lambda x: x % 2 == 0)
+
+split_streams[0].sink(print_val)
+# split_streams[1].sink(print_val)
+
+union_stream = split_streams[1].union(source2)
+union_stream.sink(print_val)
+
+topology.run()
 
