@@ -1,7 +1,7 @@
 import random
 
 
-class Source:
+class Supplier:
     def __init__(self):
         pass
 
@@ -10,11 +10,11 @@ class Source:
 
 class Stream:
 
-    def __init__(self, source):
-        self.source = source
+    def __init__(self, supplier):
+        self.supplier = supplier
 
     def get(self):
-        return self.source.get()
+        return self.supplier.get()
 
     def printStream(self): pass
 
@@ -29,7 +29,7 @@ class Stream:
         return FilterStream(self, f)
 
 
-class StreamContainer():
+class StreamContainer:
     vals = []
 
     def __init__(self, stream):
@@ -43,11 +43,11 @@ class StreamContainer():
         nextval = self.stream.get()
         while nextval is not None:
             currentval = nextval
-            nextval = self.stream.get()
             if f(currentval) == num:
                 return currentval
             else:
                 self.vals.append(currentval)
+                nextval = self.stream.get()
 
 
 class SplitStream(Stream):
@@ -58,7 +58,7 @@ class SplitStream(Stream):
         self.f = f
 
     def get(self):
-        self.streamcontainer.get(self.num, self.f)
+        return self.streamcontainer.get(self.num, self.f)
 
     def printStream(self):
         nextval = self.get()
@@ -78,9 +78,9 @@ class FilterStream(Stream):
         nextval = self.stream.get()
         while nextval is not None:
             currentval = nextval
-            nextval = self.stream.get()
             if self.f(currentval):
                  return currentval
+            nextval = self.stream.get()
         return None
 
     def printStream(self):
@@ -91,30 +91,44 @@ class FilterStream(Stream):
             print currentval
 
 
-class RandomSource(Source):
+class RandomSupplier(Supplier):
 
     def __init__(self):
-        Source.__init__(self)
+        Supplier.__init__(self)
 
     def get(self):
         return random.randint(0,10)
 
 
+class FixedDataSupplier(Supplier):
 
-randomSource = RandomSource()
+    vals = [0,1,2,3,4,5,6,7,8,9,10]
 
-s = Stream(randomSource)
+    def __init__(self):
+        Supplier.__init__(self)
 
-# streams = s.split(2, lambda x : x % 2 == 0)
-#
-# streams[0].printStream()
+    def get(self):
+        if len(self.vals) is 0:
+            return None
+        else:
+            val = self.vals[0]
+            self.vals.remove(val)
+            return val
 
+randomSource = RandomSupplier()
+fixedDataSource = FixedDataSupplier()
 
-filter1 = s.filter(lambda x: x % 2 == 0)
+s = Stream(fixedDataSource)
 
+streams = s.split(2, lambda x: x % 2 == 0)
+
+streams[1].printStream()
+print "Stream finished"
+streams[0].printStream()
+
+b = Stream(randomSource)
+
+filter1 = b.filter(lambda x: x % 2 == 0)
 filter2 = filter1.filter(lambda x: x > 6)
-
-# filter2.split(lambda x: x == 8)
-
 filter2.printStream()
 
