@@ -76,13 +76,49 @@ class Flat:
         self.flat_union_average_temp_stream.sink(ValPrinter(prefix + self.flat_name + " Flat AVG").print_val)
 
 
+class Floor:
+
+    def __init__(self, topology, floor_number):
+        self.topology = topology
+        self.floor_number = floor_number
+        self.flat_1 = Flat(topology, "Floor " + floor_number + " - Flat 1")
+        self.flat_2 = Flat(topology, "Floor " + floor_number + " - Flat 2")
+        self.flat_3 = Flat(topology, "Floor " + floor_number + " - Flat 3")
+
+        self.floor_union = self.flat_1.flat_union.union([self.flat_2.flat_union, self.flat_3.flat_union])
+        self.floor_average = self.floor_union.window(10000, 1, lambda x: 0).batch(lambda values, partition: mean(values))
+
+    def add_print_sinks(self):
+        self.flat_1.add_print_sinks("")
+        self.flat_2.add_print_sinks("")
+        self.flat_3.add_print_sinks("")
+        self.floor_union.sink(ValPrinter("Floor " + str(self.floor_number) + " Union").print_val)
+        self.floor_average.sink(ValPrinter("Floor " + str(self.floor_number) + " AVG").print_val)
+
+
+class Building:
+
+    def __init__(self, topology, number_of_floors):
+        self.topology = topology
+        self.floors = []
+        for num in range(0, number_of_floors):
+            self.floors.append(Floor(self.topology, str(num + 1)))
+
+        floor_1 = self.floors[0].floor_union
+        self.building_union = floor_1.union([floor.floor_union for floor in self.floors])
+        self.building_avg = self.building_union.window(10000, 1, lambda x: 0).batch(lambda values, partition: mean(values))
+
+    def add_print_sinks(self):
+        for floor in self.floors:
+            floor.add_print_sinks()
+        self.building_union.sink(ValPrinter("Building Union").print_val)
+        self.building_avg.sink(ValPrinter("Building AVG").print_val)
+
+
 topology = Topology()
 
-flat_1 = Flat(topology, "Flat 1")
-flat_1.add_print_sinks("")
-
-flat_2 = Flat(topology, "Flat 2")
-flat_2.add_print_sinks("")
+building = Building(topology, 5)
+building.add_print_sinks()
 
 topology.run()
 
