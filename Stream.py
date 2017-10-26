@@ -201,6 +201,7 @@ class Window(Stream):
     def batch(self, func_vals_to_val):
         batch_stream = BatchStream(self.time_in_millis, func_vals_to_val)
         self.subscribe(batch_stream)
+        return batch_stream
 
 
 class BatchStream(Stream):
@@ -271,8 +272,19 @@ class PolledSource(Stream):
 
     def start(self):
         self.thread_running = True
-        threading.Thread(target=self._get_data())
+        thread = threading.Thread(target=self._get_data)
+        thread.start()
 
 
 def print_val(value):
     print str(datetime.now()) + ":    " + str(value)
+
+
+class ValPrinter:
+
+    def __init__(self, prefix):
+        self.prefix = prefix
+
+    def print_val(self, value):
+        with open(self.prefix, 'a') as outfile:
+            outfile.write(str(datetime.now()) + "," + self.prefix + "," + str(value) + "\n",)
