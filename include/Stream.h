@@ -41,7 +41,6 @@ class Sink : public Subscriber<T> {
         }
 };
 
-
 template <typename T>
 class Stream : public Subscriber<T>, public Subscribeable<T> {
         
@@ -64,10 +63,20 @@ class Stream : public Subscriber<T>, public Subscribeable<T> {
             this->subscribe(filter_stream);
             return filter_stream;
         }
+
+        Stream<T>* union_streams(int num_streams, Stream<T>** streams) {
+            Stream* union_stream = new Stream();
+            this->subscribe(union_stream);
+            for (int i = 0; i < num_streams; i++) {
+                streams[i]->subscribe(union_stream);
+            }
+            return union_stream;
+        }
     
         ~Stream() {
         }
 };
+
 
 template <typename T>
 class Stream<T>::FilterStream: public Stream<T> {
@@ -75,9 +84,8 @@ class Stream<T>::FilterStream: public Stream<T> {
 public:
     FilterStream(bool (*filter_function)(T)) : filter_function(filter_function) {};
     void receive(T value) {
-        if (filter_function(value)) {
+        if (filter_function(value)) 
             this->publish(value);
-        }
     }
 };
 
