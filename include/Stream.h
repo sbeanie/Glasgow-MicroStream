@@ -83,7 +83,16 @@ class Stream : public Subscriber<INPUT>, public Subscribeable<OUTPUT> {
         }
 
         Stream<OUTPUT, OUTPUT>** split(int num_streams, int (*split_function)(OUTPUT)) {
-            // TODO
+            Stream<OUTPUT, OUTPUT>** streams = new Stream<OUTPUT, OUTPUT>*[num_streams];
+
+            for (int i = 0; i < num_streams; i++) {
+                streams[i] = new Stream<OUTPUT, OUTPUT>();
+            }
+
+            SplitStream<OUTPUT, OUTPUT>* split_stream = new SplitStream<OUTPUT, OUTPUT>(split_function, num_streams, streams);
+
+            this->subscribe(split_stream);
+            return streams;
         }
 
         template <typename X>
@@ -106,7 +115,8 @@ class SplitStream: public Stream<INPUT, OUTPUT> {
     int num_streams;
     Stream<OUTPUT, OUTPUT>** streams;
 public:
-    SplitStream(int (*split_function)(INPUT), int num_streams, Stream<OUTPUT, OUTPUT>** streams) : split_function(split_function), streams(streams), num_streams(num_streams) {};
+    SplitStream(int (*split_function)(INPUT), int num_streams, Stream<OUTPUT, OUTPUT>** streams) 
+        : split_function(split_function), streams(streams), num_streams(num_streams) {};
 
     void receive(INPUT value) {
         int split_stream_num = split_function(value);

@@ -8,7 +8,7 @@
             "type": "shell",
             "command": "g++",
             "args": [
-                "-g -W -Wall -Wpedantic", "Stream.cpp"
+                "-g -std=c++14 -W -Wall -Wpedantic -I ./include main.cpp"
             ],
             "group": {
                 "kind": "build",
