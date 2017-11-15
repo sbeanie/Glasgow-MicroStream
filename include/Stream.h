@@ -41,30 +41,53 @@ class Sink : public Subscriber<T> {
         }
 };
 
-template <typename T>
-class Stream : public Subscriber<T>, public Subscribeable<T> {
+
+template <typename INPUT, typename OUTPUT>
+class Stream;
+
+template <typename INPUT, typename OUTPUT>
+class FilterStream;
+
+template <typename INPUT, typename OUTPUT>
+class MapStream;
+
+template <typename INPUT, typename OUTPUT>
+class SplitStream;
+
+template <typename INPUT, typename OUTPUT>
+class Stream : public Subscriber<INPUT>, public Subscribeable<OUTPUT> {
         
     public:
     
-        virtual void receive(T value) {
+        virtual void receive(INPUT value) {
             this->publish(value);
         }
     
-        Sink<T>* sink(void (*sink_function)(T)) {
-            Sink<T>* sink = new Sink<T>(sink_function);
+        Sink<OUTPUT>* sink(void (*sink_function)(OUTPUT)) {
+            Sink<OUTPUT>* sink = new Sink<OUTPUT>(sink_function);
             this->subscribe(sink);
             return sink;
         }
 
-        class FilterStream;
-
-        FilterStream* filter(bool (*filter_function)(T)) {
-            FilterStream* filter_stream = new FilterStream(filter_function);
+        FilterStream<OUTPUT, OUTPUT>* filter(bool (*filter_function)(OUTPUT)) {
+            FilterStream<OUTPUT, OUTPUT>* filter_stream = new FilterStream<OUTPUT, OUTPUT>(filter_function);
             this->subscribe(filter_stream);
             return filter_stream;
         }
 
-        Stream<T>* union_streams(int num_streams, Stream<T>** streams) {
+        template <typename X>
+        MapStream<OUTPUT, X>* map(X (*map_function)(OUTPUT)) {
+            MapStream<OUTPUT, X>* map_stream = new MapStream<OUTPUT, X>(map_function);
+            this->subscribe(map_stream);
+            return map_stream;
+        }
+
+        Stream<OUTPUT, OUTPUT>** split(int num_streams, int (*split_function)(OUTPUT)) {
+            // TODO
+        }
+
+        template <typename X>
+        Stream<OUTPUT, OUTPUT>* union_streams(int num_streams, Stream<X, OUTPUT>** streams) {
             Stream* union_stream = new Stream();
             this->subscribe(union_stream);
             for (int i = 0; i < num_streams; i++) {
@@ -77,13 +100,37 @@ class Stream : public Subscriber<T>, public Subscribeable<T> {
         }
 };
 
-
-template <typename T>
-class Stream<T>::FilterStream: public Stream<T> {
-    bool (*filter_function)(T);
+template <typename INPUT, typename OUTPUT>
+class SplitStream: public Stream<INPUT, OUTPUT> {
+    int (*split_function) (INPUT);
+    int num_streams;
+    Stream<OUTPUT, OUTPUT>** streams;
 public:
-    FilterStream(bool (*filter_function)(T)) : filter_function(filter_function) {};
-    void receive(T value) {
+    SplitStream(int (*split_function)(INPUT), int num_streams, Stream<OUTPUT, OUTPUT>** streams) : split_function(split_function), streams(streams), num_streams(num_streams) {};
+
+    void receive(INPUT value) {
+        int split_stream_num = split_function(value);
+        streams[split_stream_num % num_streams]->receive(value);
+    }
+};
+
+template <typename INPUT, typename OUTPUT>
+class MapStream: public Stream<INPUT, OUTPUT> {
+    OUTPUT (*map_function)(INPUT);
+public:
+    MapStream(OUTPUT (*map_function)(INPUT)) : map_function(map_function) {};
+    
+    virtual void receive(INPUT value) {
+        this->publish(map_function(value));
+    }
+};
+
+template <typename INPUT, typename OUTPUT>
+class FilterStream: public Stream<INPUT, OUTPUT> {
+    bool (*filter_function)(INPUT);
+public:
+    FilterStream(bool (*filter_function)(INPUT)) : filter_function(filter_function) {};
+    void receive(INPUT value) {
         if (filter_function(value)) 
             this->publish(value);
     }
