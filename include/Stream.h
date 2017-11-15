@@ -2,6 +2,7 @@
 #define _STREAM_H_
 
 #include <iostream>
+#include <type_traits>
 #include "LinkedList.h"
 
 template <typename T>
@@ -41,21 +42,23 @@ class Sink : public Subscriber<T> {
         }
 };
 
-
 template <typename INPUT, typename OUTPUT>
-class Stream;
+class TwoTypeStream;
 
-template <typename INPUT, typename OUTPUT>
+template <typename T>
+class Stream: public TwoTypeStream<T, T> {};
+
+template <typename T>
 class FilterStream;
 
 template <typename INPUT, typename OUTPUT>
 class MapStream;
 
-template <typename INPUT, typename OUTPUT>
+template <typename INPUT>
 class SplitStream;
 
 template <typename INPUT, typename OUTPUT>
-class Stream : public Subscriber<INPUT>, public Subscribeable<OUTPUT> {
+class TwoTypeStream : public Subscriber<INPUT>, public Subscribeable<OUTPUT> {
         
     public:
     
@@ -69,8 +72,8 @@ class Stream : public Subscriber<INPUT>, public Subscribeable<OUTPUT> {
             return sink;
         }
 
-        FilterStream<OUTPUT, OUTPUT>* filter(bool (*filter_function)(OUTPUT)) {
-            FilterStream<OUTPUT, OUTPUT>* filter_stream = new FilterStream<OUTPUT, OUTPUT>(filter_function);
+        FilterStream<OUTPUT>* filter(bool (*filter_function)(OUTPUT)) {
+            FilterStream<OUTPUT>* filter_stream = new FilterStream<OUTPUT>(filter_function);
             this->subscribe(filter_stream);
             return filter_stream;
         }
@@ -82,22 +85,24 @@ class Stream : public Subscriber<INPUT>, public Subscribeable<OUTPUT> {
             return map_stream;
         }
 
-        Stream<OUTPUT, OUTPUT>** split(int num_streams, int (*split_function)(OUTPUT)) {
-            Stream<OUTPUT, OUTPUT>** streams = new Stream<OUTPUT, OUTPUT>*[num_streams];
+        Stream<OUTPUT>** split(int num_streams, int (*split_function)(OUTPUT)) {
+            Stream<OUTPUT>** streams = new Stream<OUTPUT>*[num_streams];
 
             for (int i = 0; i < num_streams; i++) {
-                streams[i] = new Stream<OUTPUT, OUTPUT>();
+                streams[i] = new Stream<OUTPUT>();
             }
 
-            SplitStream<OUTPUT, OUTPUT>* split_stream = new SplitStream<OUTPUT, OUTPUT>(split_function, num_streams, streams);
+            SplitStream<OUTPUT>* split_stream = new SplitStream<OUTPUT>(split_function, num_streams, streams);
 
             this->subscribe(split_stream);
             return streams;
         }
 
-        template <typename X>
-        Stream<OUTPUT, OUTPUT>* union_streams(int num_streams, Stream<X, OUTPUT>** streams) {
-            Stream* union_stream = new Stream();
+        template<class T>
+        Stream<OUTPUT>* union_streams(int num_streams, T** streams) {
+            static_assert(std::is_base_of<Subscribeable<OUTPUT>, T>::value, "Passed streams should have matching output type.");
+
+            Stream<OUTPUT>* union_stream = new Stream<OUTPUT>();
             this->subscribe(union_stream);
             for (int i = 0; i < num_streams; i++) {
                 streams[i]->subscribe(union_stream);
@@ -105,18 +110,18 @@ class Stream : public Subscriber<INPUT>, public Subscribeable<OUTPUT> {
             return union_stream;
         }
     
-        ~Stream() {
+        ~TwoTypeStream() {
         }
 };
 
-template <typename INPUT, typename OUTPUT>
-class SplitStream: public Stream<INPUT, OUTPUT> {
+template <typename INPUT>
+class SplitStream: public Stream<INPUT> {
     int (*split_function) (INPUT);
     int num_streams;
-    Stream<OUTPUT, OUTPUT>** streams;
+    Stream<INPUT>** streams;
 public:
-    SplitStream(int (*split_function)(INPUT), int num_streams, Stream<OUTPUT, OUTPUT>** streams) 
-        : split_function(split_function), streams(streams), num_streams(num_streams) {};
+    SplitStream(int (*split_function)(INPUT), int num_streams, Stream<INPUT>** streams) 
+        : split_function(split_function), num_streams(num_streams), streams(streams) {};
 
     void receive(INPUT value) {
         int split_stream_num = split_function(value);
@@ -125,7 +130,7 @@ public:
 };
 
 template <typename INPUT, typename OUTPUT>
-class MapStream: public Stream<INPUT, OUTPUT> {
+class MapStream: public TwoTypeStream<INPUT, OUTPUT> {
     OUTPUT (*map_function)(INPUT);
 public:
     MapStream(OUTPUT (*map_function)(INPUT)) : map_function(map_function) {};
@@ -135,12 +140,12 @@ public:
     }
 };
 
-template <typename INPUT, typename OUTPUT>
-class FilterStream: public Stream<INPUT, OUTPUT> {
-    bool (*filter_function)(INPUT);
+template <typename T>
+class FilterStream: public Stream<T> {
+    bool (*filter_function)(T);
 public:
-    FilterStream(bool (*filter_function)(INPUT)) : filter_function(filter_function) {};
-    void receive(INPUT value) {
+    FilterStream(bool (*filter_function)(T)) : filter_function(filter_function) {};
+    void receive(T value) {
         if (filter_function(value)) 
             this->publish(value);
     }
