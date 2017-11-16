@@ -3,7 +3,10 @@
 
 #include <iostream>
 #include <type_traits>
-#include "LinkedList.h"
+#include <thread>         // std::thread
+#include <mutex>          // std::mutex, std::lock_guard
+#include <boost/date_time.hpp>
+#include <list>
 
 template <typename T>
 class Subscriber {
@@ -15,16 +18,20 @@ public:
 
 template <typename T>
 class Subscribeable {
-    LinkedList< Subscriber<T>* > subscribers;
+    std::list< Subscriber<T>* > subscribers;
 
 protected:
     void publish(T value) {
-        subscribers.for_each([=](Subscriber<T>* subscriber){subscriber->receive(value);});
+        for (typename std::list<Subscriber<T>*>::iterator subscribersIterator = subscribers.begin();
+                subscribersIterator != subscribers.end();
+                subscribersIterator++) {
+            (*subscribersIterator)->receive(value);
+        }
     }
 
 public:
     void subscribe(Subscriber<T>* subscriber) {
-        subscribers.add(subscriber);
+        subscribers.push_back(subscriber);
     };
 };
 
@@ -109,9 +116,33 @@ class TwoTypeStream : public Subscriber<INPUT>, public Subscribeable<OUTPUT> {
             }
             return union_stream;
         }
+
+
     
         ~TwoTypeStream() {
         }
+};
+
+
+template <typename T>
+class Window: public Stream<T> {
+
+    std::mutex mtx;
+
+    long duration_in_millis;
+    int (*func_val_to_int) (T);
+    Stream<T>** streams;
+    std::list<T> values;
+
+public:
+    Window(long duration_in_millis, int (*func_val_to_int)(T), Stream<T>** streams)
+        : duration_in_millis(duration_in_millis), func_val_to_int(func_val_to_int), streams(streams) {};
+
+    void receive(T value) {
+        std::lock_guard<std::mutex> lck(mtx);
+        std::cout << "Got value: " << value << std::endl;
+    }
+
 };
 
 template <typename INPUT>

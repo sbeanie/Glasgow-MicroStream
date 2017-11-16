@@ -26,6 +26,11 @@
         "functional": "cpp",
         "memory": "cpp",
         "tuple": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "ratio": "cpp",
+        "chrono": "cpp",
+        "ctime": "cpp",
+        "mutex": "cpp",
+        "thread": "cpp"
     }
 }
