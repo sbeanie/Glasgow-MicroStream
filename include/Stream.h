@@ -1,11 +1,12 @@
 #ifndef _STREAM_H_
 #define _STREAM_H_
 
-#include <iostream>
 #include <type_traits>
-#include <thread>         // std::thread
-#include <mutex>          // std::mutex, std::lock_guard
 #include <boost/date_time.hpp>
+#include <boost/chrono.hpp>
+#include <boost/thread/thread.hpp>
+#include <mutex>
+#include <condition_variable>
 #include <list>
 
 template <typename T>
@@ -58,10 +59,13 @@ class Stream: public TwoTypeStream<T, T> {};
 template <typename T>
 class FilterStream;
 
+template <typename T>
+class Window;
+
 template <typename INPUT, typename OUTPUT>
 class MapStream;
 
-template <typename INPUT>
+template <typename T>
 class SplitStream;
 
 template <typename INPUT, typename OUTPUT>
@@ -117,44 +121,140 @@ class TwoTypeStream : public Subscriber<INPUT>, public Subscribeable<OUTPUT> {
             return union_stream;
         }
 
-
+        Window<OUTPUT>* last(boost::chrono::duration<double> duration, int number_of_splits, int (*func_val_to_int)(OUTPUT)) {
+            Window<OUTPUT>* window = new Window<OUTPUT>(duration, number_of_splits, func_val_to_int);
+            this->subscribe(window);
+            return window;
+        }
     
         ~TwoTypeStream() {
         }
 };
 
 
+template <class T>
+struct TimestampedValue {
+    T value;
+    boost::chrono::system_clock::time_point timePoint;
+
+    TimestampedValue(T value, boost::chrono::system_clock::time_point timePoint) : value(value), timePoint(timePoint) {};
+};
+
 template <typename T>
 class Window: public Stream<T> {
 
-    std::mutex mtx;
+    boost::mutex m;
+    boost::condition_variable cv;
+    boost::thread thread;
+    bool should_run;
+    
 
-    long duration_in_millis;
+    boost::chrono::duration<double> duration;
+
+    int number_of_splits;
     int (*func_val_to_int) (T);
-    Stream<T>** streams;
-    std::list<T> values;
+    std::vector<std::list<TimestampedValue<T>* > > values;
+
+private:
+
+    TimestampedValue<T>* earliest_t_val() {
+        TimestampedValue<T>* first_t_val = nullptr;
+        std::cout << "Iterating" << std::endl;
+
+        for (typename std::vector<std::list<TimestampedValue<T>* > >::iterator listIterator = this->values.begin();
+                listIterator != this->values.end();
+                listIterator++) {
+            TimestampedValue<T>* t_val = listIterator->front();
+            if (first_t_val == nullptr) {
+                first_t_val = t_val;
+            } else if (t_val->timePoint < first_t_val->timePoint) {
+                first_t_val = t_val;
+            }
+        }
+        return first_t_val;
+    }
+
+    void remove_and_send(TimestampedValue<T>* t_val) {
+        int split = this->func_val_to_int(t_val->value) % this->number_of_splits;
+        std::list<TimestampedValue<T>* > list = values.at(split);
+        for (auto it = list.begin(); it != list.end(); it++) {
+            if (*it == t_val) {
+                it = list.erase(it);
+                break;
+            }
+        }
+        T val = t_val->value;
+        std::cout << "Removed " << val << " from window." << std::endl;
+        delete(t_val);
+        send();
+    }
+
+    void send() {
+
+    }
+
+    void run() {
+        while (should_run) {
+            TimestampedValue<T>* earliest_t_val = this->earliest_t_val();
+            if (earliest_t_val != nullptr) {
+                std::cout << earliest_t_val->value << std::endl;
+
+                auto  future_wake_time = earliest_t_val->timePoint + duration;
+                boost::chrono::system_clock::time_point  time_now         = boost::chrono::system_clock::now();
+
+                if (future_wake_time < time_now) continue;
+
+                boost::chrono::duration<double> sleep_duration = future_wake_time - time_now;
+                
+                boost::this_thread::sleep_for(sleep_duration);
+                remove_and_send(earliest_t_val);
+
+            } else {
+                boost::this_thread::sleep_for(duration/2);
+            }
+            this->should_run = false;
+        }
+    }
 
 public:
-    Window(long duration_in_millis, int (*func_val_to_int)(T), Stream<T>** streams)
-        : duration_in_millis(duration_in_millis), func_val_to_int(func_val_to_int), streams(streams) {};
+    Window(boost::chrono::duration<double> duration, int number_of_splits, int (*func_val_to_int)(T))
+        : duration(duration), number_of_splits(number_of_splits), func_val_to_int(func_val_to_int) {
+            this->should_run = false;
+            this->values.resize(number_of_splits);
+        };
 
-    void receive(T value) {
-        std::lock_guard<std::mutex> lck(mtx);
-        std::cout << "Got value: " << value << std::endl;
+    void stop() {
+        this->should_run = false;
+        this->thread.join();
+    }
+
+    void receive(T value) { 
+
+        boost::chrono::system_clock::time_point timePoint = boost::chrono::system_clock::now();
+        TimestampedValue<T>* t_val = new TimestampedValue<T>(value, timePoint);
+        std::cout << "Timestamped value: " << t_val->value << " - " << t_val->timePoint << std::endl;
+        int split = func_val_to_int(value) % number_of_splits;
+
+        values.at(split).push_back(t_val);
+        if (this->should_run == false) {
+            this->should_run = true;
+            this->thread = boost::thread(&Window<T>::run, this);
+        }
+        this->thread.join();
     }
 
 };
 
-template <typename INPUT>
-class SplitStream: public Stream<INPUT> {
-    int (*split_function) (INPUT);
+template <typename T>
+class SplitStream: public Stream<T> {
+    int (*split_function) (T);
     int num_streams;
-    Stream<INPUT>** streams;
+    Stream<T>** streams;
 public:
-    SplitStream(int (*split_function)(INPUT), int num_streams, Stream<INPUT>** streams) 
+    SplitStream(int (*split_function)(T), int num_streams, Stream<T>** streams) 
         : split_function(split_function), num_streams(num_streams), streams(streams) {};
 
-    void receive(INPUT value) {
+    void receive(T value) {
         int split_stream_num = split_function(value);
         streams[split_stream_num % num_streams]->receive(value);
     }

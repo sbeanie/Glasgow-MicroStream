@@ -1,6 +1,6 @@
 CPPFLAGS=-g -W -Wall -Wpedantic -std=c++14 -I./include/
 LDFLAGS=-g
-LDLIBS=-lstdc++
+LDLIBS=-lstdc++ -lpthread -lboost_system -lboost_thread -lboost_chrono
 
 
 main: main.o 

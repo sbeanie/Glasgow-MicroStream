@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Stream.h"
 
 int main(int, char**) {
@@ -18,6 +19,8 @@ int main(int, char**) {
 
     split_streams[0]->sink(print_sink_0);
     split_streams[1]->sink(print_sink_1);
+
+    stream_1->last(boost::chrono::seconds(5), 1, [](int a) {return 0;});
 
     stream_1->receive(5);
     stream_2->receive(10);
