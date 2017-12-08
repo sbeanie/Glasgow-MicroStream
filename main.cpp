@@ -29,6 +29,19 @@ int main(int, char**) {
         }
     });
 
+    int (*aggr_func) (std::pair<int, std::list<int>*>) = [] (std::pair<int, std::list<int>*> keyValuePair) {
+        int sum = 0;
+        for (int &i : *keyValuePair.second) {
+            sum += i;
+        }
+        return sum;
+    };
+    auto window_aggregate = window->aggregate(aggr_func);
+
+    window_aggregate->sink([] (int num) {
+        std::cout << "Aggregate value: " << num << std::endl;
+    });
+
     stream_1->receive(5);
     stream_2->receive(10);
 
