@@ -1,14 +1,13 @@
 #include "Window.h"
 
-template <typename T>
+template<typename T>
 TimestampedValue<T>* Window<T>::earliest_t_val() {
-    TimestampedValue<T>* first_t_val = nullptr;
-    std::cout << "Iterating" << std::endl;
+    TimestampedValue<T> *first_t_val = nullptr;
 
-    for (typename std::vector<std::list<TimestampedValue<T>* > >::iterator listIterator = this->values.begin();
-            listIterator != this->values.end();
-            listIterator++) {
-        TimestampedValue<T>* t_val = listIterator->front();
+    for (typename std::vector<std::list<TimestampedValue<T> *>* >::iterator listIterator = this->values.begin();
+         listIterator != this->values.end();
+         listIterator++) {
+        TimestampedValue<T> *t_val = (*listIterator)->front();
         if (first_t_val == nullptr) {
             first_t_val = t_val;
         } else if (t_val->timePoint < first_t_val->timePoint) {
@@ -18,63 +17,69 @@ TimestampedValue<T>* Window<T>::earliest_t_val() {
     return first_t_val;
 }
 
-template <typename T>
-void Window<T>::remove_and_send(TimestampedValue<T>* t_val) {
+template<typename T>
+void Window<T>::remove_and_send(TimestampedValue<T> *t_val) {
     int split = this->func_val_to_int(t_val->value) % this->number_of_splits;
-    std::list<TimestampedValue<T>* > list = values.at(split);
-    for (auto it = list.begin(); it != list.end(); it++) {
+    std::list<TimestampedValue<T> *>* list = values.at(split);
+    for (auto it = list->begin(); it != list->end(); it++) {
         if (*it == t_val) {
-            it = list.erase(it);
+            list->erase(it);
             break;
         }
     }
-    T val = t_val->value;
-    std::cout << "Removed " << val << " from window." << std::endl;
+
+    int split_number = t_val->split_number;
     delete(t_val);
-    send();
+    send(split_number);
 }
 
-template <typename T>
-void Window<T>::send() {
+template<typename T>
+void Window<T>::send(int split_number) {
+    std::list<TimestampedValue<T> *>* t_val_list = values.at(split_number);
+
+    std::list<T>* val_list = new std::list<T>();
+    for (auto valueIterator = t_val_list->begin(); valueIterator != t_val_list->end(); valueIterator++) {
+        val_list->push_back((*valueIterator)->value);
+    }
+    this->publish(std::pair<int, std::list<T>* >(split_number, val_list));
 }
 
-template <typename T>
+template<typename T>
 void Window<T>::run() {
     while (should_run) {
-        TimestampedValue<T>* earliest_t_val = this->earliest_t_val();
+        TimestampedValue<T> *earliest_t_val = this->earliest_t_val();
         if (earliest_t_val != nullptr) {
-            std::cout << earliest_t_val->value << std::endl;
 
-             auto  future_wake_time = earliest_t_val->timePoint + duration;
-            boost::chrono::system_clock::time_point  time_now         = boost::chrono::system_clock::now();
+            auto future_wake_time = earliest_t_val->timePoint + duration;
+            boost::chrono::system_clock::time_point time_now = boost::chrono::system_clock::now();
 
-            if (future_wake_time < time_now) continue;
+            if (future_wake_time < time_now) {
+                remove_and_send(earliest_t_val);
+                continue;
+            }
 
             boost::chrono::duration<double> sleep_duration = future_wake_time - time_now;
-            
+
             boost::this_thread::sleep_for(sleep_duration);
             remove_and_send(earliest_t_val);
 
         } else {
-            boost::this_thread::sleep_for(duration/2);
+            boost::this_thread::sleep_for(duration / 2);
         }
-        this->should_run = false;
     }
 }
 
-template <typename T>
-void Window<T>::receive(T value) { 
+template<typename T>
+void Window<T>::receive(T value) {
     boost::chrono::system_clock::time_point timePoint = boost::chrono::system_clock::now();
-    TimestampedValue<T>* t_val = new TimestampedValue<T>(value, timePoint);
-    std::cout << "Timestamped value: " << t_val->value << " - " << t_val->timePoint << std::endl;
-    int split = func_val_to_int(value) % number_of_splits;
+    auto *t_val = new TimestampedValue<T>(value, timePoint, func_val_to_int(value) % number_of_splits);
 
-    values.at(split).push_back(t_val);
-    if (this->should_run == false) {
-        this->should_run = true;
+    (*values.at(t_val->split_number)).push_back(t_val);
+    send(t_val->split_number);
+    if (! this->thread_started) {
+        this->thread_started = true;
         this->thread = boost::thread(&Window<T>::run, this);
     }
-    this->thread.join();
 }
 
 

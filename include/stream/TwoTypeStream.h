@@ -11,10 +11,6 @@ class TwoTypeStream : public Subscriber<INPUT>, public Subscribeable<OUTPUT> {
         
     public:
     
-        virtual void receive(INPUT value) {
-            this->publish(value);
-        }
-    
         Sink<OUTPUT>* sink(void (*sink_function)(OUTPUT)) {
             Sink<OUTPUT>* sink = new Sink<OUTPUT>(sink_function);
             this->subscribe(sink);

@@ -9,5 +9,6 @@
 #include "stream/FilterStream.h"
 #include "stream/MapStream.h"
 #include "stream/Window.h"
+#include "stream/WindowAggregate.h"
 
 #endif
