@@ -1,7 +1,7 @@
 #ifndef _WINDOW_BATCH_H_
 #define _WINDOW_BATCH_H_
 
-#include "StreamTypes.h"
+#include "StreamTypes.hpp"
 #include <boost/date_time.hpp>
 #include <boost/chrono.hpp>
 #include <boost/thread/thread.hpp>

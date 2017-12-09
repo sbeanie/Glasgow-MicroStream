@@ -1,7 +1,7 @@
 #ifndef _MAP_STREAM_H_
 #define _MAP_STREAM_H_
 
-#include "StreamTypes.h"
+#include "StreamTypes.hpp"
 
 template <typename INPUT, typename OUTPUT>
 class MapStream: public TwoTypeStream<INPUT, OUTPUT> {

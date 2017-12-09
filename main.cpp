@@ -1,5 +1,5 @@
 #include <iostream>
-#include "Stream.h"
+#include "Stream.hpp"
 
 int main(int, char**) {
     

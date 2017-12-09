@@ -1,7 +1,7 @@
 #ifndef _FILTER_STREAM_H_
 #define _FILTER_STREAM_H_
 
-#include "StreamTypes.h"
+#include "StreamTypes.hpp"
 
 template <typename T>
 class FilterStream: public Stream<T> {

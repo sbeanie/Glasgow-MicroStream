@@ -2,7 +2,7 @@
 #define _SUBSCRIBEABLE_H_
 
 #include <list>
-#include "Subscriber.h"
+#include "Subscriber.hpp"
 
 template <typename T>
 class Subscribeable {

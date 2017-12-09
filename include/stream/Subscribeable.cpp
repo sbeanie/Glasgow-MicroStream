@@ -1,4 +1,4 @@
-#include "Subscribeable.h"
+#include "Subscribeable.hpp"
 
 template <typename T>
 void Subscribeable<T>::publish(T value) {

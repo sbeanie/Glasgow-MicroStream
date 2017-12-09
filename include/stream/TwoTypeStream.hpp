@@ -1,9 +1,9 @@
 #ifndef _TWO_TYPE_STREAM_H_
 #define _TWO_TYPE_STREAM_H_
 
-#include "StreamTypes.h"
-#include "Subscribeable.h"
-#include "Subscriber.h"
+#include "StreamTypes.hpp"
+#include "Subscribeable.hpp"
+#include "Subscriber.hpp"
 #include "boost/chrono.hpp"
 
 template <typename INPUT, typename OUTPUT>

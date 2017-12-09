@@ -2,8 +2,8 @@
 #define _WINDOW_H_
 
 
-#include "StreamTypes.h"
-#include "WindowBatch.h"
+#include "StreamTypes.hpp"
+#include "WindowBatch.hpp"
 #include <boost/date_time.hpp>
 #include <boost/chrono.hpp>
 #include <boost/thread/thread.hpp>

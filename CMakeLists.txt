@@ -8,7 +8,7 @@ include_directories ("${PROJECT_SOURCE_DIR}/include")
 find_package( Boost 1.65 REQUIRED COMPONENTS system chrono thread )
 include_directories( ${Boost_INCLUDE_DIRS} )
 
-add_executable(GU-Edgent main.cpp include/stream/WindowAggregate.h include/stream/WindowBatch.h)
+add_executable(GU-Edgent main.cpp)
 
 TARGET_LINK_LIBRARIES( GU-Edgent LINK_PUBLIC ${Boost_LIBRARIES} )
 

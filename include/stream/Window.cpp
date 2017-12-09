@@ -1,4 +1,4 @@
-#include "Window.h"
+#include "Window.hpp"
 
 template<typename T>
 TimestampedValue<T>* Window<T>::earliest_t_val() {
