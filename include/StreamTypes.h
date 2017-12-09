@@ -29,6 +29,9 @@ class MapStream;
 template <typename INPUT, typename OUTPUT>
 class WindowAggregate;
 
+template <typename INPUT, typename OUTPUT>
+class WindowBatch;
+
 template <typename T>
 class SplitStream;
 

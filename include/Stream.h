@@ -10,5 +10,6 @@
 #include "stream/MapStream.h"
 #include "stream/Window.h"
 #include "stream/WindowAggregate.h"
+#include "stream/WindowBatch.h"
 
 #endif

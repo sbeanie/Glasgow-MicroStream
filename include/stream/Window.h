@@ -3,6 +3,7 @@
 
 
 #include "StreamTypes.h"
+#include "WindowBatch.h"
 #include <boost/date_time.hpp>
 #include <boost/chrono.hpp>
 #include <boost/thread/thread.hpp>
@@ -60,6 +61,13 @@ public:
         WindowAggregate<T, OUTPUT>* window_aggregate = new WindowAggregate<T, OUTPUT>(func_vals_to_val);
         this->subscribe(window_aggregate);
         return window_aggregate;
+    };
+
+    template <typename OUTPUT>
+    WindowBatch<T, OUTPUT>* batch(boost::chrono::duration<double> period, OUTPUT (*func_vals_to_val) (std::pair<int, std::list<T>* >)) {
+        WindowBatch<T, OUTPUT>* window_batch = new WindowBatch<T, OUTPUT>(period, number_of_splits, func_vals_to_val);
+        this->subscribe(window_batch);
+        return window_batch;
     };
 
     void receive(T value);
