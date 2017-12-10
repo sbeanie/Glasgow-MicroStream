@@ -4,27 +4,27 @@
 
 #include "StreamTypes.hpp"
 #include "WindowBatch.hpp"
-#include <boost/date_time.hpp>
-#include <boost/chrono.hpp>
-#include <boost/thread/thread.hpp>
+#include <ctime>
+#include <chrono>
+#include <thread>
 #include <list>
 
 template <class T>
 struct TimestampedValue {
     int split_number;
     T value;
-    boost::chrono::system_clock::time_point timePoint;
+    std::chrono::system_clock::time_point timePoint;
 
-    TimestampedValue(T value, boost::chrono::system_clock::time_point timePoint, int split_number) : value(value), timePoint(timePoint), split_number(split_number) {};
+    TimestampedValue(T value, std::chrono::system_clock::time_point timePoint, int split_number) : value(value), timePoint(timePoint), split_number(split_number) {};
 };
 
 template <typename T>
 class Window: public TwoTypeStream<T, std::pair<int, std::list<T>* > > {
 
-    boost::thread thread;
+    std::thread thread;
     bool should_run, thread_started;
     
-    boost::chrono::duration<double> duration;
+    std::chrono::duration<double> duration;
 
     int number_of_splits;
     int (*func_val_to_int) (T);
@@ -41,7 +41,7 @@ private:
     void run();
 
 public:
-    Window(boost::chrono::duration<double> duration, int number_of_splits, int (*func_val_to_int)(T))
+    Window(std::chrono::duration<double> duration, int number_of_splits, int (*func_val_to_int)(T))
         : duration(duration), number_of_splits(number_of_splits), func_val_to_int(func_val_to_int) {
             this->should_run = true;
             this->thread_started = false;
@@ -64,7 +64,7 @@ public:
     };
 
     template <typename OUTPUT>
-    WindowBatch<T, OUTPUT>* batch(boost::chrono::duration<double> period, OUTPUT (*func_vals_to_val) (std::pair<int, std::list<T>* >)) {
+    WindowBatch<T, OUTPUT>* batch(std::chrono::duration<double> period, OUTPUT (*func_vals_to_val) (std::pair<int, std::list<T>* >)) {
         WindowBatch<T, OUTPUT>* window_batch = new WindowBatch<T, OUTPUT>(period, number_of_splits, func_vals_to_val);
         this->subscribe(window_batch);
         return window_batch;

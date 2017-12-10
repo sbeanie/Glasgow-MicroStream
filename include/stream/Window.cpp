@@ -51,34 +51,34 @@ void Window<T>::run() {
         if (earliest_t_val != nullptr) {
 
             auto future_wake_time = earliest_t_val->timePoint + duration;
-            boost::chrono::system_clock::time_point time_now = boost::chrono::system_clock::now();
+            std::chrono::system_clock::time_point time_now = std::chrono::system_clock::now();
 
             if (future_wake_time < time_now) {
                 remove_and_send(earliest_t_val);
                 continue;
             }
 
-            boost::chrono::duration<double> sleep_duration = future_wake_time - time_now;
+            std::chrono::duration<double> sleep_duration = future_wake_time - time_now;
 
-            boost::this_thread::sleep_for(sleep_duration);
+            std::this_thread::sleep_for(sleep_duration);
             remove_and_send(earliest_t_val);
 
         } else {
-            boost::this_thread::sleep_for(duration / 2);
+            std::this_thread::sleep_for(duration / 2);
         }
     }
 }
 
 template<typename T>
 void Window<T>::receive(T value) {
-    boost::chrono::system_clock::time_point timePoint = boost::chrono::system_clock::now();
+    std::chrono::system_clock::time_point timePoint = std::chrono::system_clock::now();
     auto *t_val = new TimestampedValue<T>(value, timePoint, func_val_to_int(value) % number_of_splits);
 
     (*values.at(t_val->split_number)).push_back(t_val);
     send(t_val->split_number);
     if (! this->thread_started) {
         this->thread_started = true;
-        this->thread = boost::thread(&Window<T>::run, this);
+        this->thread = std::thread(&Window<T>::run, this);
     }
 }
 

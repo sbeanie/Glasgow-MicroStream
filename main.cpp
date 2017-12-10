@@ -20,7 +20,7 @@ int main(int, char**) {
     split_streams[0]->sink(print_sink_0);
     split_streams[1]->sink(print_sink_1);
 
-    auto window = union_stream->last(boost::chrono::seconds(5), 1, [](int a) {return 0;});
+    auto window = union_stream->last(std::chrono::seconds(5), 1, [](int a) {return 0;});
 
     std::pair<int, std::list<int>*> (*int_values_printer) (std::pair<int, std::list<int>*>) = [] (std::pair<int, std::list<int>* > nums) {
         std::cout << "Key " << nums.first << ": Received " << nums.second->size() << " value(s)." << std::endl;
@@ -43,13 +43,13 @@ int main(int, char**) {
         std::cout << "Aggregate value: " << num << std::endl;
     });
 
-    window->batch(boost::chrono::seconds(1), int_values_printer);
+    window->batch(std::chrono::seconds(1), int_values_printer);
 
     stream_1->receive(5);
     stream_2->receive(10);
 
     // If window->stop() is called before the window thread is done processing, the thread may die before processing data.
-    boost::this_thread::sleep_for(boost::chrono::seconds(10));
+    std::this_thread::sleep_for(std::chrono::seconds(10));
     window->stop();
 
     return 0;

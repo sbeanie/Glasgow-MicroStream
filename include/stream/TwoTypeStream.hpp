@@ -4,7 +4,7 @@
 #include "StreamTypes.hpp"
 #include "Subscribeable.hpp"
 #include "Subscriber.hpp"
-#include "boost/chrono.hpp"
+#include <chrono>
 
 template <typename INPUT, typename OUTPUT>
 class TwoTypeStream : public Subscriber<INPUT>, public Subscribeable<OUTPUT> {
@@ -55,7 +55,7 @@ class TwoTypeStream : public Subscriber<INPUT>, public Subscribeable<OUTPUT> {
             return union_stream;
         }
 
-        Window<OUTPUT>* last(boost::chrono::duration<double> duration, int number_of_splits, int (*func_val_to_int)(OUTPUT)) {
+        Window<OUTPUT>* last(std::chrono::duration<double> duration, int number_of_splits, int (*func_val_to_int)(OUTPUT)) {
             Window<OUTPUT>* window = new Window<OUTPUT>(duration, number_of_splits, func_val_to_int);
             this->subscribe(window);
             return window;
