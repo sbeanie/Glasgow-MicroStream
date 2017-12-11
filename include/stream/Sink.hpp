@@ -25,5 +25,7 @@ public:
     void receive(T value) {
             sink_function(value);
     }
+
+    virtual ~Sink() {}
 };
 #endif

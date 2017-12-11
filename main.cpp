@@ -21,7 +21,7 @@ int main(int, char**) {
     split_streams[0]->sink(print_sink_0);
     split_streams[1]->sink(print_sink_1);
 
-    auto window = union_stream->last(std::chrono::seconds(5), 1, [](int a) {return 0;});
+    auto window = union_stream->last(std::chrono::seconds(5), 1, [](int) {return 0;});
 
     std::pair<int, std::shared_ptr<std::list<int> > > (*int_values_printer) (std::pair<int, std::shared_ptr<std::list<int> > >) = [] (std::pair<int, std::shared_ptr<std::list<int> > > nums) {
         std::cout << "Key " << nums.first << ": Received " << nums.second->size() << " value(s)." << std::endl;
