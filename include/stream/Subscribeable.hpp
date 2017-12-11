@@ -3,17 +3,16 @@
 
 #include <list>
 #include "Subscriber.hpp"
+#include <mutex>
 
 template <typename T>
 class Subscribeable {
-    std::list< Subscriber<T>* > subscribers;
-
-protected:
-    void publish(T value);
 
 public:
-    void subscribe(Subscriber<T>* subscriber);
-};
+    virtual void publish(T) {}
 
-#include "Subscribeable.cpp"
+    virtual void unsubscribe(Subscriber<T>*) = 0;
+
+    virtual void subscribe(Subscriber<T>*) = 0;
+};
 #endif

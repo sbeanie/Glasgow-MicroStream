@@ -4,6 +4,7 @@ template<typename T>
 TimestampedValue<T>* Window<T>::earliest_t_val() {
     TimestampedValue<T> *first_t_val = nullptr;
 
+    std::lock_guard<std::recursive_mutex> lock(values_lock);
     for (typename std::vector<std::list<TimestampedValue<T> *>* >::iterator listIterator = this->values.begin();
          listIterator != this->values.end();
          listIterator++) {
@@ -20,6 +21,7 @@ TimestampedValue<T>* Window<T>::earliest_t_val() {
 template<typename T>
 void Window<T>::remove_and_send(TimestampedValue<T> *t_val) {
     int split = this->func_val_to_int(t_val->value) % this->number_of_splits;
+    std::lock_guard<std::recursive_mutex> lock(values_lock);
     std::list<TimestampedValue<T> *>* list = values.at(split);
     for (auto it = list->begin(); it != list->end(); it++) {
         if (*it == t_val) {
@@ -35,13 +37,26 @@ void Window<T>::remove_and_send(TimestampedValue<T> *t_val) {
 
 template<typename T>
 void Window<T>::send(int split_number) {
+    std::lock_guard<std::recursive_mutex> lock(values_lock);
     std::list<TimestampedValue<T> *>* t_val_list = values.at(split_number);
 
-    std::list<T>* val_list = new std::list<T>();
+    std::shared_ptr<std::list<T> > val_list(new std::list<T>());
     for (auto valueIterator = t_val_list->begin(); valueIterator != t_val_list->end(); valueIterator++) {
         val_list->push_back((*valueIterator)->value);
     }
-    this->publish(std::pair<int, std::list<T>* >(split_number, val_list));
+    this->publish(std::pair<int, std::shared_ptr<std::list<T> > > (split_number, val_list));
+}
+
+template <typename T>
+void Window<T>::publish(std::pair<int, std::shared_ptr<std::list<T> > > keyValuePair) {
+    for (auto subscribersIterator = this->subscribers.begin(); subscribersIterator != this->subscribers.end(); subscribersIterator++) {
+        // Create a new list to prevent concurrent modification while later streams are processing.
+        std::list<T>* val_list = new std::list<T>();
+        for (auto valueIterator = keyValuePair.second->begin(); valueIterator != keyValuePair.second->end(); valueIterator++) {
+            val_list->push_back(*valueIterator);
+        }
+        (*subscribersIterator)->receive(std::pair<int, std::shared_ptr<std::list<T> > >(keyValuePair.first, val_list));
+    }
 }
 
 template<typename T>
@@ -74,6 +89,7 @@ void Window<T>::receive(T value) {
     std::chrono::system_clock::time_point timePoint = std::chrono::system_clock::now();
     auto *t_val = new TimestampedValue<T>(value, timePoint, func_val_to_int(value) % number_of_splits);
 
+    std::lock_guard<std::recursive_mutex> lock(values_lock);
     (*values.at(t_val->split_number)).push_back(t_val);
     send(t_val->split_number);
     if (! this->thread_started) {

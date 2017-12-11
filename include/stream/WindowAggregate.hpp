@@ -5,10 +5,11 @@
 #include <list>
 
 template <typename INPUT, typename OUTPUT>
-class WindowAggregate: public MapStream<std::pair<int, std::list<INPUT>* >, OUTPUT> {
+class WindowAggregate: public MapStream<std::pair<int, std::shared_ptr<std::list<INPUT> > >, OUTPUT> {
 
 public:
-    WindowAggregate(OUTPUT (*func_vals_to_val) (std::pair<int, std::list<INPUT>*>)) : MapStream<std::pair<int, std::list<INPUT>* >, OUTPUT>(func_vals_to_val) {};
+    WindowAggregate(OUTPUT (*func_vals_to_val) (std::pair<int, std::shared_ptr<std::list<INPUT> > >))
+            : MapStream<std::pair<int, std::shared_ptr<std::list<INPUT> > >, OUTPUT>(func_vals_to_val) {};
 };
 
 #endif //_WINDOW_AGGREGATE_H_

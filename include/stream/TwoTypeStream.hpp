@@ -5,64 +5,125 @@
 #include "Subscribeable.hpp"
 #include "Subscriber.hpp"
 #include <chrono>
+#include <vector>
 
 template <typename INPUT, typename OUTPUT>
 class TwoTypeStream : public Subscriber<INPUT>, public Subscribeable<OUTPUT> {
-        
-    public:
-    
-        Sink<OUTPUT>* sink(void (*sink_function)(OUTPUT)) {
-            Sink<OUTPUT>* sink = new Sink<OUTPUT>(sink_function);
-            this->subscribe(sink);
-            return sink;
+
+protected:
+    std::mutex subscribers_lock;
+    std::list<Subscriber<OUTPUT>* > subscribers;
+    std::list<Subscribeable<INPUT>* > subscribeables;
+
+public:
+
+    virtual void publish(OUTPUT value) {
+        std::lock_guard<std::mutex> lock(subscribers_lock);
+        for (auto subscribersIterator = subscribers.begin(); subscribersIterator != subscribers.end(); subscribersIterator++) {
+            (*subscribersIterator)->receive(value);
         }
+    }
 
-        FilterStream<OUTPUT>* filter(bool (*filter_function)(OUTPUT)) {
-            FilterStream<OUTPUT>* filter_stream = new FilterStream<OUTPUT>(filter_function);
-            this->subscribe(filter_stream);
-            return filter_stream;
-        }
-
-        template <typename X>
-        MapStream<OUTPUT, X>* map(X (*map_function)(OUTPUT)) {
-            MapStream<OUTPUT, X>* map_stream = new MapStream<OUTPUT, X>(map_function);
-            this->subscribe(map_stream);
-            return map_stream;
-        }
-
-        Stream<OUTPUT>** split(int num_streams, int (*split_function)(OUTPUT)) {
-            Stream<OUTPUT>** streams = new Stream<OUTPUT>*[num_streams];
-
-            for (int i = 0; i < num_streams; i++) {
-                streams[i] = new Stream<OUTPUT>();
+    void unsubscribe(Subscriber<OUTPUT>* subscriber) override {
+        std::lock_guard<std::mutex> lock(subscribers_lock);
+        for (auto subscribersIterator = subscribers.begin(); subscribersIterator != subscribers.end(); subscribersIterator++) {
+            if (*subscribersIterator == subscriber) {
+                subscribers.remove(*subscribersIterator);
+                return;
             }
-
-            SplitStream<OUTPUT>* split_stream = new SplitStream<OUTPUT>(split_function, num_streams, streams);
-
-            this->subscribe(split_stream);
-            return streams;
         }
+    }
 
-        template<class T>
-        Stream<OUTPUT>* union_streams(int num_streams, T** streams) {
-            static_assert(std::is_base_of<Subscribeable<OUTPUT>, T>::value, "Passed streams should have matching output type.");
+    void subscribe(Subscriber<OUTPUT>* subscriber) override {
+        std::lock_guard<std::mutex> lock(subscribers_lock);
+        subscribers.push_back(subscriber);
+        subscriber->add_subscribeable((Subscribeable<OUTPUT>*) this);
+    }
 
-            Stream<OUTPUT>* union_stream = new Stream<OUTPUT>();
-            this->subscribe(union_stream);
-            for (int i = 0; i < num_streams; i++) {
-                streams[i]->subscribe(union_stream);
+    void notify_subscribeable_deleted(Subscribeable<INPUT>* subscribeable) override {
+        for (auto subscribeableIterator = subscribeables.begin(); subscribeableIterator != subscribeables.end(); subscribeableIterator++) {
+            if (*subscribeableIterator == subscribeable) {
+                subscribeables.remove(*subscribeableIterator);
+                break;
             }
-            return union_stream;
+        }
+        if (subscribeables.size() == 0) {
+            delete_and_notify();
+        }
+    }
+
+    bool delete_and_notify() override {
+        if (subscribeables.size() != 0) return false;
+        for (auto subscribersIterator = subscribers.begin(); subscribersIterator != subscribers.end(); subscribersIterator++) {
+            Subscribeable<OUTPUT>* subscribeable = this;
+            (*subscribersIterator)->notify_subscribeable_deleted(subscribeable);
+        }
+        delete(this);
+        return true;
+    }
+
+    void add_subscribeable(Subscribeable<INPUT>* subscribeable) override {
+        std::lock_guard<std::mutex> lock(subscribers_lock);
+        subscribeables.push_back(subscribeable);
+    }
+
+
+    virtual void receive(INPUT&) {};
+
+    Sink<OUTPUT>* sink(void (*sink_function)(OUTPUT)) {
+        Sink<OUTPUT>* sink = new Sink<OUTPUT>(sink_function);
+        this->subscribe(sink);
+        return sink;
+    }
+
+    FilterStream<OUTPUT>* filter(bool (*filter_function)(OUTPUT)) {
+        FilterStream<OUTPUT>* filter_stream = new FilterStream<OUTPUT>(filter_function);
+        this->subscribe(filter_stream);
+        return filter_stream;
+    }
+
+    template <typename X>
+    MapStream<OUTPUT, X>* map(X (*map_function)(OUTPUT)) {
+        MapStream<OUTPUT, X>* map_stream = new MapStream<OUTPUT, X>(map_function);
+        this->subscribe(map_stream);
+        return map_stream;
+    }
+
+    std::vector<Stream<OUTPUT>*> split(int num_streams, int (*split_function)(OUTPUT)) {
+
+        std::vector<Stream<OUTPUT>* > streams;
+
+        for (int i = 0; i < num_streams; i++) {
+            streams.push_back(new Stream<OUTPUT>());
         }
 
-        Window<OUTPUT>* last(std::chrono::duration<double> duration, int number_of_splits, int (*func_val_to_int)(OUTPUT)) {
-            Window<OUTPUT>* window = new Window<OUTPUT>(duration, number_of_splits, func_val_to_int);
-            this->subscribe(window);
-            return window;
+        SplitStream<OUTPUT>* split_stream = new SplitStream<OUTPUT>(split_function, num_streams, streams);
+
+        this->subscribe(split_stream);
+        return streams;
+    }
+
+    template<class T>
+    Stream<OUTPUT>* union_streams(int num_streams, T** streams) {
+        static_assert(std::is_base_of<Subscribeable<OUTPUT>, T>::value, "Passed streams should have matching output type.");
+
+        Stream<OUTPUT>* union_stream = new Stream<OUTPUT>();
+        this->subscribe(union_stream);
+        for (int i = 0; i < num_streams; i++) {
+            streams[i]->subscribe(union_stream);
         }
-    
-        ~TwoTypeStream() {
-        }
+        return union_stream;
+    }
+
+    Window<OUTPUT>* last(std::chrono::duration<double> duration, int number_of_splits, int (*func_val_to_int)(OUTPUT)) {
+        Window<OUTPUT>* window = new Window<OUTPUT>(duration, number_of_splits, func_val_to_int);
+        this->subscribe(window);
+        return window;
+    }
+
+    virtual ~TwoTypeStream() {
+        std::cout << "Stream deleted" << std::endl;
+    }
 };
 
 #endif

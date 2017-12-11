@@ -8,6 +8,7 @@
 #include <chrono>
 #include <thread>
 #include <list>
+#include <mutex>
 
 template <class T>
 struct TimestampedValue {
@@ -15,11 +16,11 @@ struct TimestampedValue {
     T value;
     std::chrono::system_clock::time_point timePoint;
 
-    TimestampedValue(T value, std::chrono::system_clock::time_point timePoint, int split_number) : value(value), timePoint(timePoint), split_number(split_number) {};
+    TimestampedValue(T value, std::chrono::system_clock::time_point timePoint, int split_number) : split_number(split_number), value(value), timePoint(timePoint) {};
 };
 
 template <typename T>
-class Window: public TwoTypeStream<T, std::pair<int, std::list<T>* > > {
+class Window: public TwoTypeStream<T, std::pair<int, std::shared_ptr<std::list<T> > > > {
 
     std::thread thread;
     bool should_run, thread_started;
@@ -28,8 +29,9 @@ class Window: public TwoTypeStream<T, std::pair<int, std::list<T>* > > {
 
     int number_of_splits;
     int (*func_val_to_int) (T);
-    std::vector<std::list<TimestampedValue<T>* >* > values; // TODO Access to this needs to be made synchronized
 
+    std::recursive_mutex values_lock;
+    std::vector<std::list<TimestampedValue<T>* >* > values;
 private:
 
     TimestampedValue<T>* earliest_t_val();
@@ -57,20 +59,27 @@ public:
     }
 
     template <typename OUTPUT>
-    WindowAggregate<T, OUTPUT>* aggregate(OUTPUT (*func_vals_to_val) (std::pair<int, std::list<T>* >)) {
+    WindowAggregate<T, OUTPUT>* aggregate(OUTPUT (*func_vals_to_val) (std::pair<int, std::shared_ptr<std::list<T> > >)) {
         WindowAggregate<T, OUTPUT>* window_aggregate = new WindowAggregate<T, OUTPUT>(func_vals_to_val);
         this->subscribe(window_aggregate);
         return window_aggregate;
-    };
+    }
 
     template <typename OUTPUT>
-    WindowBatch<T, OUTPUT>* batch(std::chrono::duration<double> period, OUTPUT (*func_vals_to_val) (std::pair<int, std::list<T>* >)) {
+    WindowBatch<T, OUTPUT>* batch(std::chrono::duration<double> period, OUTPUT (*func_vals_to_val) (std::pair<int, std::shared_ptr<std::list<T> > >)) {
         WindowBatch<T, OUTPUT>* window_batch = new WindowBatch<T, OUTPUT>(period, number_of_splits, func_vals_to_val);
         this->subscribe(window_batch);
         return window_batch;
-    };
+    }
 
+    void publish(std::pair<int, std::shared_ptr<std::list<T> > > keyValuePair);
     void receive(T value);
+
+    ~Window() {
+        for (auto it = values.begin(); it != values.end(); it++) {
+            delete(*it);
+        }
+    }
 };
 
 #include "stream/Window.cpp"

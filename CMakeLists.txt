@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 project (GU-Edgent)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+SET(CMAKE_CXX_FLAGS  "-g -W -Wall -Wpedantic" )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

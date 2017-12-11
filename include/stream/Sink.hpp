@@ -6,14 +6,24 @@
 template <typename T>
 class Sink : public Subscriber<T> {
     
-        void (*sink_function)(T);
-    
-    public:
-    
-        Sink(void (*sink_function)(T)) : sink_function(sink_function){};
-    
-        void receive(T value) {
+    void (*sink_function)(T);
+
+public:
+    Sink(void (*sink_function)(T)) : sink_function(sink_function) {};
+
+    void notify_subscribeable_deleted(Subscribeable<T> *) override {
+        delete_and_notify();
+    };
+
+    void add_subscribeable(Subscribeable<T> *) override {};
+
+    bool delete_and_notify() override {
+        delete(this);
+        return true;
+    }
+
+    void receive(T value) {
             sink_function(value);
-        }
+    }
 };
 #endif
