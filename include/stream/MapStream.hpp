@@ -12,10 +12,6 @@ public:
     virtual void receive(INPUT value) {
         this->publish(map_function(value));
     }
-
-    ~MapStream() {
-        std::cout << "Map Stream deleted" << std::endl;
-    }
 };
 
 #endif

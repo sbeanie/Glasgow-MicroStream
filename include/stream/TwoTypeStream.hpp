@@ -17,7 +17,7 @@ protected:
 
 public:
 
-    virtual void publish(OUTPUT value) {
+    virtual void publish(OUTPUT value) override {
         std::lock_guard<std::mutex> lock(subscribers_lock);
         for (auto subscribersIterator = subscribers.begin(); subscribersIterator != subscribers.end(); subscribersIterator++) {
             (*subscribersIterator)->receive(value);
@@ -66,9 +66,6 @@ public:
         std::lock_guard<std::mutex> lock(subscribers_lock);
         subscribeables.push_back(subscribeable);
     }
-
-
-    virtual void receive(INPUT&) {};
 
     Sink<OUTPUT>* sink(void (*sink_function)(OUTPUT)) {
         Sink<OUTPUT>* sink = new Sink<OUTPUT>(sink_function);
@@ -121,9 +118,7 @@ public:
         return window;
     }
 
-    virtual ~TwoTypeStream() {
-        std::cout << "Stream deleted" << std::endl;
-    }
+    virtual ~TwoTypeStream() {}
 };
 
 #endif

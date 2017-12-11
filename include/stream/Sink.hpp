@@ -22,7 +22,7 @@ public:
         return true;
     }
 
-    void receive(T value) {
+    void receive(T value) override {
             sink_function(value);
     }
 
