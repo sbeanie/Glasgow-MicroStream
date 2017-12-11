@@ -51,7 +51,7 @@ template <typename T>
 void Window<T>::publish(std::pair<int, std::shared_ptr<std::list<T> > > keyValuePair) {
     for (auto subscribersIterator = this->subscribers.begin(); subscribersIterator != this->subscribers.end(); subscribersIterator++) {
         // Create a new list to prevent concurrent modification while later streams are processing.
-        std::list<T>* val_list = new std::list<T>();
+        std::shared_ptr<std::list<T> > val_list = std::shared_ptr<std::list<T> >(new std::list<T>());
         for (auto valueIterator = keyValuePair.second->begin(); valueIterator != keyValuePair.second->end(); valueIterator++) {
             val_list->push_back(*valueIterator);
         }
