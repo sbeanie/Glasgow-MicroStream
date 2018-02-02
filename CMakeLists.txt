@@ -12,7 +12,8 @@ include_directories ("${PROJECT_SOURCE_DIR}/include")
 #find_package( Boost 1.65 REQUIRED COMPONENTS system chrono thread )
 #include_directories( ${Boost_INCLUDE_DIRS} )
 
-add_executable(GU-Edgent main.cpp)
+#add_executable(GU-Edgent main.cpp)
+add_executable(GU-Edgent NetworkTest.cpp include/network/NetworkSource.h)
 
 #TARGET_LINK_LIBRARIES( GU-Edgent LINK_PUBLIC ${Boost_LIBRARIES} Threads::Threads )
 TARGET_LINK_LIBRARIES( GU-Edgent LINK_PUBLIC Threads::Threads )
