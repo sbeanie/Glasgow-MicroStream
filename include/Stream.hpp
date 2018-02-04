@@ -12,4 +12,9 @@
 #include "stream/WindowAggregate.hpp"
 #include "stream/WindowBatch.hpp"
 
+#include "stream/source/Source.hpp"
+#include "network/NetworkSink.hpp"
+#include "network/NetworkSource.hpp"
+#include "stream/Topology.hpp"
+
 #endif

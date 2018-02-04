@@ -35,7 +35,6 @@ private:
             perror("sendto");
         }
         free(bytes.second);
-        std::cout << "Sent" << std::endl;
     }
 
 public:

@@ -13,7 +13,7 @@ include_directories ("${PROJECT_SOURCE_DIR}/include")
 #include_directories( ${Boost_INCLUDE_DIRS} )
 
 #add_executable(GU-Edgent main.cpp)
-add_executable(GU-Edgent NetworkTest.cpp include/network/NetworkSource.h)
+add_executable(GU-Edgent NetworkTest.cpp)
 
 #TARGET_LINK_LIBRARIES( GU-Edgent LINK_PUBLIC ${Boost_LIBRARIES} Threads::Threads )
 TARGET_LINK_LIBRARIES( GU-Edgent LINK_PUBLIC Threads::Threads )

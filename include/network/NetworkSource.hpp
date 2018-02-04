@@ -93,7 +93,6 @@ private:
                 perror("recvfrom");
                 exit(1);
             }
-            std::cout << "Received message" << std::endl;
             void *data = malloc(num_bytes_received);
             memcpy(data, msgbuf, num_bytes_received);
             this->process((unsigned int) num_bytes_received, data);
