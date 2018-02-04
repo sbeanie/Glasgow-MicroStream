@@ -23,17 +23,17 @@ int main(int, char**) {
 
     auto window = union_stream->last(std::chrono::seconds(5), 1, [](int) {return 0;});
 
-    std::pair<int, std::shared_ptr<std::list<int> > > (*int_values_printer) (std::pair<int, std::shared_ptr<std::list<int> > >) = [] (std::pair<int, std::shared_ptr<std::list<int> > > nums) {
-        std::cout << "Key " << nums.first << ": Received " << nums.second->size() << " value(s)." << std::endl;
-        for (auto &i : *(nums.second)) {
+    std::pair<int, std::list<int> > (*int_values_printer) (std::pair<int, std::list<int> >) = [] (std::pair<int, std::list<int> > nums) {
+        std::cout << "Key " << nums.first << ": Received " << nums.second.size() << " value(s)." << std::endl;
+        for (auto &i : nums.second) {
             std::cout << "Received number: " << i << std::endl;
         }
         return nums;
     };
 
-    int (*aggr_func) (std::pair<int, std::shared_ptr<std::list<int> > >) = [] (std::pair<int, std::shared_ptr<std::list<int> > > keyValuePair) {
+    int (*aggr_func) (std::pair<int, std::list<int> >) = [] (std::pair<int, std::list<int> > keyValuePair) {
         int sum = 0;
-        for (int &i : *keyValuePair.second) {
+        for (int &i : keyValuePair.second) {
             sum += i;
         }
         return sum;

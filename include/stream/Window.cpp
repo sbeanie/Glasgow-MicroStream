@@ -40,22 +40,18 @@ void Window<T>::send(int split_number) {
     std::lock_guard<std::recursive_mutex> lock(values_lock);
     std::list<TimestampedValue<T> *>* t_val_list = values.at(split_number);
 
-    std::shared_ptr<std::list<T> > val_list(new std::list<T>());
+    std::list<T> val_list;
     for (auto valueIterator = t_val_list->begin(); valueIterator != t_val_list->end(); valueIterator++) {
-        val_list->push_back((*valueIterator)->value);
+        val_list.push_back((*valueIterator)->value);
     }
-    this->publish(std::pair<int, std::shared_ptr<std::list<T> > > (split_number, val_list));
+
+    this->publish(std::pair<int, std::list<T> > (split_number, val_list));
 }
 
 template <typename T>
-void Window<T>::publish(std::pair<int, std::shared_ptr<std::list<T> > > keyValuePair) {
+void Window<T>::publish(std::pair<int, std::list<T> > keyValuePair) {
     for (auto subscribersIterator = this->subscribers.begin(); subscribersIterator != this->subscribers.end(); subscribersIterator++) {
-        // Create a new list to prevent concurrent modification while later streams are processing.
-        std::shared_ptr<std::list<T> > val_list = std::shared_ptr<std::list<T> >(new std::list<T>());
-        for (auto valueIterator = keyValuePair.second->begin(); valueIterator != keyValuePair.second->end(); valueIterator++) {
-            val_list->push_back(*valueIterator);
-        }
-        (*subscribersIterator)->receive(std::pair<int, std::shared_ptr<std::list<T> > >(keyValuePair.first, val_list));
+        (*subscribersIterator)->receive(keyValuePair);
     }
 }
 

@@ -9,7 +9,7 @@
 #include <list>
 
 template <typename T, typename OUTPUT>
-class WindowBatch: public TwoTypeStream<std::pair<int, std::shared_ptr<std::list<T> > >,  OUTPUT > {
+class WindowBatch: public TwoTypeStream<std::pair<int, std::list<T> >,  OUTPUT > {
 
     std::thread thread;
     bool should_run, thread_started;
@@ -17,8 +17,8 @@ class WindowBatch: public TwoTypeStream<std::pair<int, std::shared_ptr<std::list
     std::chrono::duration<double> duration;
 
     int number_of_splits;
-    OUTPUT (*func_vals_to_val) (std::pair<int, std::shared_ptr<std::list<T> > >);
-    std::vector<std::shared_ptr<std::list<T> > > values; // TODO Access to this needs to be made synchronized
+    OUTPUT (*func_vals_to_val) (std::pair<int, std::list<T> >);
+    std::vector<std::list<T> > values; // TODO Access to this needs to be made synchronized
 
 private:
 
@@ -26,21 +26,22 @@ private:
         while (should_run) {
             std::this_thread::sleep_for(this->duration);
             for (int i = 0; i < number_of_splits; i++) {
-                std::shared_ptr<std::list<T> > value_list = values.at(i);
-                std::pair<int, std::shared_ptr<std::list<T> > > key_value_pair = std::pair<int, std::shared_ptr<std::list<T> > >(i, value_list);
+                std::list<T> value_list = values.at(i);
+                auto key_value_pair = std::pair<int, std::list<T> >(i, value_list);
                 this->publish(func_vals_to_val(key_value_pair));
             }
         }
     }
 
 public:
-    WindowBatch(std::chrono::duration<double> duration, int number_of_splits, OUTPUT (*func_vals_to_val) (std::pair<int, std::shared_ptr<std::list<T> > >))
+    WindowBatch(std::chrono::duration<double> duration, int number_of_splits, OUTPUT (*func_vals_to_val) (std::pair<int, std::list<T> >))
             : duration(duration), number_of_splits(number_of_splits), func_vals_to_val(func_vals_to_val) {
         this->should_run = true;
         this->thread_started = false;
 
         for (int i = 0; i < number_of_splits; i++) {
-            values.push_back(nullptr);
+            std::list<T> new_list;
+            values.push_back(std::move(new_list));
         }
     };
 
@@ -49,7 +50,7 @@ public:
         this->thread.join();
     }
 
-    void receive(std::pair<int, std::shared_ptr<std::list<T> > > key_value_pair) {
+    void receive(std::pair<int, std::list<T> > key_value_pair) {
         this->values[key_value_pair.first] = key_value_pair.second;
         if (! this->thread_started) {
             this->thread_started = true;
