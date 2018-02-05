@@ -3,6 +3,8 @@
 
 #include <list>
 
+class Topology;
+
 template <typename T>
 class Sink;
 
@@ -34,5 +36,8 @@ class WindowBatch;
 
 template <typename T>
 class SplitStream;
+
+template <typename T>
+class NetworkSink;
 
 #endif

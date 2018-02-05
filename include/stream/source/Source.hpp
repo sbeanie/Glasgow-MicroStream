@@ -21,5 +21,6 @@ public:
 
 #include "stream/source/FixedDataSource.hpp"
 #include "stream/source/PolledSource.hpp"
+#include "stream/source/NetworkSource.hpp"
 
 #endif //GU_EDGENT_SOURCE_H

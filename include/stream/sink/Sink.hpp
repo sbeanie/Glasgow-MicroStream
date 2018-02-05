@@ -1,7 +1,7 @@
 #ifndef _SINK_H_
 #define _SINK_H_
 
-#include "Subscriber.hpp"
+#include "stream/Subscriber.hpp"
 
 template <typename T>
 class Sink : public Subscriber<T> {
@@ -28,4 +28,7 @@ public:
 
     virtual ~Sink() {}
 };
+
+#include "stream/sink/NetworkSink.hpp"
+
 #endif

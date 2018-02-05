@@ -5,7 +5,6 @@
 
 #include "stream/TwoTypeStream.hpp"
 #include "stream/SplitStream.hpp"
-#include "stream/Sink.hpp"
 #include "stream/FilterStream.hpp"
 #include "stream/MapStream.hpp"
 #include "stream/Window.hpp"
@@ -13,8 +12,7 @@
 #include "stream/WindowBatch.hpp"
 
 #include "stream/source/Source.hpp"
-#include "network/NetworkSink.hpp"
-#include "network/NetworkSource.hpp"
 #include "stream/Topology.hpp"
+#include "stream/sink/Sink.hpp"
 
 #endif

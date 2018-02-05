@@ -31,33 +31,46 @@ public:
 
 int main (int argc, char **argv) {
 
-    Topology* topology = new Topology();
 
-    std::pair<unsigned int, void*> (*int_to_byte_array) (int) = [] (int val) {
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //  Lambda Functions
+    std::pair<size_t, void*> (*int_to_byte_array) (int) = [] (int val) {
         int *int_ptr = (int *) malloc(sizeof(int));
         *int_ptr = val;
-        return std::pair<unsigned int, void*>(sizeof(val), int_ptr);
+        return std::pair<size_t, void*>(sizeof(val), int_ptr);
     };
 
-    int (*byte_array_to_int) (unsigned int, void*) = [] (unsigned int length, void *byte_array) {
-        return *((int*) byte_array);
+    std::optional<int> (*byte_array_to_int) (std::pair<size_t, void*>) = [] (std::pair<size_t, void*> data) {
+        return std::optional<int>(*((int*) data.second));
     };
 
+    auto print_sink = [](int val) { std::cout << "Received val " << val << " over the network." << std::endl;};
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    Topology* topology = new Topology();
+
+    // Create two data sources that will feed the topology.
     std::list<int> values = {0,1,2,3,4};
     Source<int>* int_source = topology->addPolledSource(std::chrono::seconds(1), new NumberSource(values));
     Source<int>* int_source2 = topology->addFixedDataSource(values);
 
-    auto *networkSink = new NetworkSink<int>("test_stream", "225.0.0.37", 12345, int_to_byte_array);
-    auto *networkSource = new NetworkSource<int>("test_stream", "225.0.0.37", 12345, byte_array_to_int);
+    // Union the two data sources and sink them into the network stream "numbers"
+    auto union_stream = int_source->union_streams(1, &int_source2);
+    union_stream->networkSink(topology, "numbers", int_to_byte_array);
 
-    int_source->subscribe(networkSink);
-    int_source2->subscribe(networkSink);
+    // Create a new topology source that will read data from the network (potentially from a different sensor)
+    // This call fails if another source exists with the same stream_id.
+    std::optional<NetworkSource<int>*> opt_network_int_source = topology->addNetworkSource("numbers", byte_array_to_int);
+    if (! opt_network_int_source.has_value()) {
+        std::cout << "Failed to create network source" << std::endl;
+        exit(1);
+    }
 
-    auto print_sink = [](int val) { std::cout << "Received val " << val << " over the network." << std::endl;};
-
+    // Sink the network stream into std.out.
+    NetworkSource<int>* networkSource = opt_network_int_source.value();
     networkSource->sink(print_sink);
 
-    std::cout << "Setup streams" << std::endl;
+    std::cout << "Topology built.\nRunning..." << std::endl;
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
