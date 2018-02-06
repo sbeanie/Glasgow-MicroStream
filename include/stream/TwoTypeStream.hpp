@@ -116,8 +116,8 @@ public:
     }
 
 
-    NetworkSink<OUTPUT>* networkSink(Topology *topology, char *stream_id, std::pair<size_t, void*> (*val_to_bytes) (OUTPUT)) {
-        NetworkSink<OUTPUT>* networkSink = new NetworkSink<OUTPUT>(topology, stream_id, val_to_bytes);
+    NetworkSink<OUTPUT>* networkSink(Topology *topology, const char *stream_id, std::pair<size_t, void*> (*val_to_bytes) (OUTPUT)) {
+        auto *networkSink = new NetworkSink<OUTPUT>(topology, stream_id, val_to_bytes);
         this->subscribe(networkSink);
         return networkSink;
     }

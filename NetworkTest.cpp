@@ -11,6 +11,8 @@ public:
         this->values = std::move(values);
     }
 
+    virtual ~NumberSource() {}
+
     int getData (PolledSource<int>* caller) {
 
         std::list<int>::iterator ptr;
