@@ -15,7 +15,7 @@
 class Topology {
 
 private:
-    std::list<Startable*> sources;
+    std::list<Startable*> startables;
 
     NetworkListener* networkListener;
     NetworkSender* networkSender;
@@ -47,26 +47,27 @@ public:
             return;
         }
         ptr->second->receive(std::pair<size_t, void*>(streamPacket->get_data_size(), streamPacket->get_stream_data()));
+        delete(streamPacket);
     }
 
-
     // Responsible for packaging stream_id info into a fixed format packet
-    void send(char *stream_id, std::pair<size_t, void *> data) {
+    void send(const char *stream_id, std::pair<size_t, void *> data) {
         StreamPacket* streamPacket = new StreamPacket(stream_id, data);
         networkSender->send(streamPacket);
+        delete(streamPacket);
     }
 
     template <typename T>
     FixedDataSource<T>* addFixedDataSource(std::list<T> values) {
         auto *fixedDataSource = new FixedDataSource<T>(values);
-        sources.push_back((Startable*) fixedDataSource);
+        startables.push_back((Startable*) fixedDataSource);
         return fixedDataSource;
     }
 
     template <typename T>
     PolledSource<T>* addPolledSource(std::chrono::duration<double> interval, Pollable<T>* pollable) {
         auto *polledSource = new PolledSource<T>(interval, pollable);
-        sources.push_back((Startable*) polledSource);
+        startables.push_back((Startable*) polledSource);
         return polledSource;
     }
 
@@ -84,8 +85,26 @@ public:
     }
 
     void run() {
-        for (auto &source : sources) {
-            (*source).start();
+        for (auto &startable : startables) {
+            (*startable).start();
+        }
+    }
+
+    void shutdown() {
+        networkListener->stop();
+    }
+
+    ~Topology() {
+        networkListener->stop();
+        delete(networkListener);
+        delete(networkSender);
+        for (auto &startable : startables) {
+            CascadeDeleteable* cascadeDeleteable = dynamic_cast<CascadeDeleteable*>(startable);
+            cascadeDeleteable->delete_and_notify();
+        }
+        for (auto &kv : network_source_map) {
+            CascadeDeleteable* cascadeDeleteable = dynamic_cast<CascadeDeleteable*>(kv.second);
+            cascadeDeleteable->delete_and_notify();
         }
     }
 };

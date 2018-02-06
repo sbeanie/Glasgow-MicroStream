@@ -11,7 +11,7 @@ public:
 };
 
 template <typename T>
-class Source : public Stream<T>, Startable {
+class Source : public Stream<T>, public Startable {
 
 public:
 

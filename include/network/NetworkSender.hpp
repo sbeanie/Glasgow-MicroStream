@@ -10,6 +10,7 @@
 #include <thread>
 #include <cstring>
 #include <iostream>
+#include <unistd.h>
 
 #include "Stream.hpp"
 #include "StreamPacket.hpp"
@@ -48,6 +49,10 @@ public:
             perror("sendto");
         }
         free(packet.second);
+    }
+
+    ~NetworkSender() {
+        close(socket_fd);
     }
 
 };

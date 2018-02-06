@@ -3,11 +3,11 @@
 
 class NumberSource : public Pollable<int> {
 
-    std::list<int> values;
+    std::list<int>* values;
     int pos = 0;
 
 public:
-    explicit NumberSource(std::list<int> values) {
+    explicit NumberSource(std::list<int>* values) {
         this->values = std::move(values);
     }
 
@@ -16,9 +16,9 @@ public:
         std::list<int>::iterator ptr;
         int i = 0;
 
-        for (i = 0 , ptr = values.begin() ; i < pos && ptr != values.end(); i++ , ptr++ );
+        for (i = 0 , ptr = values->begin() ; i < pos && ptr != values->end(); i++ , ptr++ );
 
-        if( ptr == values.end() ) {
+        if( ptr == values->end() ) {
             caller->stop();
             return 0;
         } else {
@@ -29,8 +29,7 @@ public:
 };
 
 
-int main (int argc, char **argv) {
-
+int main (int, char**) {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //  Lambda Functions
@@ -51,11 +50,13 @@ int main (int argc, char **argv) {
 
     // Create two data sources that will feed the topology.
     std::list<int> values = {0,1,2,3,4};
-    Source<int>* int_source = topology->addPolledSource(std::chrono::seconds(1), new NumberSource(values));
+    NumberSource* numberSource = new NumberSource(&values);
+    Source<int>* int_source = topology->addPolledSource(std::chrono::seconds(1), numberSource);
     Source<int>* int_source2 = topology->addFixedDataSource(values);
 
     // Union the two data sources and sink them into the network stream "numbers"
-    auto union_stream = int_source->union_streams(1, &int_source2);
+    std::list<Subscribeable<int>* > subscribers = {(Subscribeable<int>*) int_source2};
+    auto *union_stream = int_source->union_streams(subscribers);
     union_stream->networkSink(topology, "numbers", int_to_byte_array);
 
     // Create a new topology source that will read data from the network (potentially from a different sensor)
@@ -76,7 +77,11 @@ int main (int argc, char **argv) {
 
     topology->run();
 
-    std::this_thread::sleep_for(std::chrono::seconds(60));
+    std::this_thread::sleep_for(std::chrono::seconds(7));
+
+    topology->shutdown();
+    delete(topology);
+    delete(numberSource);
 
     return 0;
 }

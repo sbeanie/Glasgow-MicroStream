@@ -46,15 +46,22 @@ public:
         valid = true;
     }
 
-    StreamPacket(char *stream_id, std::pair<size_t, void*> stream_data) : stream_id(stream_id) {
+    StreamPacket(const char *stream_id, std::pair<size_t, void*> stream_data) {
         this->stream_id_length = strlen(stream_id) + 1; // + 1 for \0
         this->data_length = stream_data.first;
         this->packet_length = stream_id_length + data_length + sizeof(size_t);
 
-        this->stream_id = stream_id;
-        this->stream_data = stream_data.second;
+        this->stream_id = strdup(stream_id);
+
+        this->stream_data = malloc(stream_data.first);
+        memcpy(this->stream_data, stream_data.second, stream_data.first);
 
         valid = true; // This constructor will always be valid.
+    }
+
+    ~StreamPacket () {
+        free(stream_id);
+        free(stream_data);
     }
 
     char* get_stream_id() {

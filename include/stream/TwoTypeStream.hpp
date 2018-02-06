@@ -100,14 +100,11 @@ public:
         return streams;
     }
 
-    template<class T>
-    Stream<OUTPUT>* union_streams(int num_streams, T** streams) {
-        static_assert(std::is_base_of<Subscribeable<OUTPUT>, T>::value, "Passed streams should have matching output type.");
-
-        Stream<OUTPUT>* union_stream = new Stream<OUTPUT>();
+    Stream<OUTPUT>* union_streams(std::list<Subscribeable<OUTPUT>*> streams) {
+        auto *union_stream = new Stream<OUTPUT>();
         this->subscribe(union_stream);
-        for (int i = 0; i < num_streams; i++) {
-            streams[i]->subscribe(union_stream);
+        for (auto ptr = streams.begin(); ptr != streams.end(); ptr++) {
+            (*ptr)->subscribe(union_stream);
         }
         return union_stream;
     }

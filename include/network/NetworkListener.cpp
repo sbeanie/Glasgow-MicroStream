@@ -2,7 +2,6 @@
 
 void NetworkListener::start_listening() {
     struct sockaddr_in addr;
-    int socket_fd;
     size_t num_bytes_received;
     struct ip_mreq mreq;
     char msgbuf[MSGBUFSIZE];
@@ -50,10 +49,9 @@ void NetworkListener::start_listening() {
 
     /* now just enter a read-print loop */
     while (should_run) {
-        socklen_t addrlen=sizeof(addr);
         ssize_t recv_bytes_received;
         if ( (recv_bytes_received = recvfrom(socket_fd, msgbuf, MSGBUFSIZE,0,
-                                             (struct sockaddr *) &sender, &sendsize)) < 0) {
+                                             (struct sockaddr *) &sender, &sendsize)) <= 0) {
             perror("recvfrom");
             continue;
         }
@@ -62,5 +60,6 @@ void NetworkListener::start_listening() {
         void *data = malloc((size_t) num_bytes_received);
         memcpy(data, msgbuf, num_bytes_received);
         this->topology->receive(std::pair<size_t, void*> ( num_bytes_received, data));
+        free(data);
     }
 }

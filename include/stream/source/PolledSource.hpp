@@ -1,6 +1,7 @@
 #ifndef GU_EDGENT_POLLEDSOURCE_H
 #define GU_EDGENT_POLLEDSOURCE_H
 
+#include <iostream>
 #include "Stream.hpp"
 
 template <typename T>
@@ -30,7 +31,7 @@ private:
             T val = this->pollable->getData(this);
 
             // If the getData function requests the thread to stop we should not publish the result.
-            if ( ! this->should_run) continue;
+            if ( ! this->should_run) break;
 
             this->publish(val);
             std::this_thread::sleep_for(interval);
@@ -55,6 +56,11 @@ public:
         this->should_run = false;
     }
 
+    ~PolledSource() {
+        this->should_run = false;
+        if (thread.joinable()) thread.join();
+        // Do not delete the pollable as it might be desirable to have two PolledSources polling the same pollable.
+    }
 };
 
 #endif //GU_EDGENT_POLLEDSOURCE_H

@@ -9,16 +9,17 @@ class NetworkSink : public Subscriber<T> {
 private:
 
     Topology *topology;
-    char *stream_id;
+    const char *stream_id;
     std::pair<size_t, void*> (*val_to_bytes) (T);
 
 public:
 
-    NetworkSink(Topology *topology, char *stream_id, std::pair<size_t, void*> (*val_to_bytes) (T)) : topology(topology), stream_id(stream_id), val_to_bytes(val_to_bytes) {}
+    NetworkSink(Topology *topology, const char *stream_id, std::pair<size_t, void*> (*val_to_bytes) (T)) : topology(topology), stream_id(stream_id), val_to_bytes(val_to_bytes) {}
 
     void receive(T val) {
         std::pair<size_t, void*> data = val_to_bytes(val);
         topology->send(stream_id, data);
+        free(data.second);
     }
 
     void notify_subscribeable_deleted(Subscribeable<T> *) override {
@@ -31,6 +32,8 @@ public:
         delete(this);
         return true;
     }
+
+    virtual ~NetworkSink() = default;
 };
 
 #endif //GU_EDGENT_NETWORKSINK_H
