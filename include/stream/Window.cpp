@@ -5,9 +5,8 @@ TimestampedValue<T>* Window<T>::earliest_t_val() {
     TimestampedValue<T> *first_t_val = nullptr;
 
     std::lock_guard<std::recursive_mutex> lock(values_lock);
-    for (typename std::vector<std::list<TimestampedValue<T> *>* >::iterator listIterator = this->values.begin();
-         listIterator != this->values.end();
-         listIterator++) {
+    for (auto listIterator = this->values.begin(); listIterator != this->values.end(); listIterator++) {
+        if ((*listIterator)->empty()) continue;
         TimestampedValue<T> *t_val = (*listIterator)->front();
         if (first_t_val == nullptr) {
             first_t_val = t_val;

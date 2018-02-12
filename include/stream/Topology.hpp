@@ -102,8 +102,8 @@ public:
             CascadeDeleteable* cascadeDeleteable = dynamic_cast<CascadeDeleteable*>(startable);
             cascadeDeleteable->delete_and_notify();
         }
-        for (auto &kv : network_source_map) {
-            CascadeDeleteable* cascadeDeleteable = dynamic_cast<CascadeDeleteable*>(kv.second);
+        for (auto &key_value_pair : network_source_map) {
+            CascadeDeleteable* cascadeDeleteable = dynamic_cast<CascadeDeleteable*>(key_value_pair.second);
             cascadeDeleteable->delete_and_notify();
         }
     }

@@ -43,6 +43,7 @@ private:
     void run();
 
 public:
+
     Window(std::chrono::duration<double> duration, int number_of_splits, int (*func_val_to_int)(T))
         : duration(duration), number_of_splits(number_of_splits), func_val_to_int(func_val_to_int) {
             this->should_run = true;
@@ -57,6 +58,13 @@ public:
         this->thread.join();
     }
 
+    /**
+     * Aggregates the contents of a window using an aggregation function.
+     * @tparam OUTPUT The output of the aggregation function.
+     * @param func_vals_to_val A function accepting a list of values of the type of the current stream that returns a value
+     * of type OUTPUT.
+     * @return A reference to the WindowAggregate stream.
+     */
     template <typename OUTPUT>
     WindowAggregate<T, OUTPUT>* aggregate(OUTPUT (*func_vals_to_val) (std::pair<int, std::list<T> >)) {
         WindowAggregate<T, OUTPUT>* window_aggregate = new WindowAggregate<T, OUTPUT>(func_vals_to_val);
@@ -64,6 +72,13 @@ public:
         return window_aggregate;
     }
 
+    /**
+     * Batches the output of a window.
+     * @tparam OUTPUT
+     * @param period The amount of time before publishing the window contents again.
+     * @param func_vals_to_val An aggregation function to apply to the batched window contents that returns type OUTPUT.
+     * @return
+     */
     template <typename OUTPUT>
     WindowBatch<T, OUTPUT>* batch(std::chrono::duration<double> period, OUTPUT (*func_vals_to_val) (std::pair<int, std::list<T> >)) {
         WindowBatch<T, OUTPUT>* window_batch = new WindowBatch<T, OUTPUT>(period, number_of_splits, func_vals_to_val);
@@ -73,6 +88,18 @@ public:
 
     void publish(std::pair<int, std::list<T> > keyValuePair);
     void receive(T value);
+
+
+    bool delete_and_notify() override {
+        if (this->subscribeables.size() != 0) return false;
+        for (auto subscribersIterator = this->subscribers.begin(); subscribersIterator != this->subscribers.end(); subscribersIterator++) {
+            Subscribeable<std::pair<int, std::list<T> > >* subscribeable = this;
+            (*subscribersIterator)->notify_subscribeable_deleted(subscribeable);
+        }
+        this->stop();
+        delete(this);
+        return true;
+    }
 
     ~Window() {
         for (auto it = values.begin(); it != values.end(); it++) {
