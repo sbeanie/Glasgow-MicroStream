@@ -9,8 +9,8 @@ find_package(Threads REQUIRED)
 
 include_directories ("${PROJECT_SOURCE_DIR}/include")
 
-add_executable(GU-Edgent main.cpp)
-#add_executable(GU-Edgent NetworkTest.cpp)
+#add_executable(GU-Edgent main.cpp)
+add_executable(GU-Edgent NetworkTest.cpp)
 
 #TARGET_LINK_LIBRARIES( GU-Edgent LINK_PUBLIC ${Boost_LIBRARIES} Threads::Threads )
 TARGET_LINK_LIBRARIES( GU-Edgent LINK_PUBLIC Threads::Threads )
