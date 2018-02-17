@@ -26,7 +26,6 @@ private:
     int socket_fd = 0;
 
     void run() {
-        struct sockaddr_in address;
         ssize_t recv_bytes_received;
         struct sockaddr_in serv_addr;
         char msgbuf[GU_EDGENT_NETWORK_BUFFER_SIZE] = {0}; //todo
@@ -97,7 +96,7 @@ public:
     }
 
     PeerListener(in_addr source_addr, uint16_t port_number, StreamPacketDataReceiver* streamPacketDataReceiver) :
-            streamPacketDataReceiver(streamPacketDataReceiver), source_addr(source_addr), port_number(port_number) {
+            streamPacketDataReceiver(streamPacketDataReceiver), port_number(port_number), source_addr(source_addr) {
         this->should_run = false;
     }
 
