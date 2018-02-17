@@ -35,8 +35,9 @@ private:
         while (should_run) {
             if ((new_socket = accept(listen_socket_fd, (struct sockaddr *) &address,
                                      (socklen_t *) &addrlen)) < 0) {
-                perror("accept");
+//                perror("accept");
             }
+            if ( ! should_run) return;
             std::lock_guard<std::recursive_mutex> lock(subscriber_sockets_lock);
             subscriber_sockets.push_back(new_socket);
         }
@@ -100,6 +101,19 @@ public:
 
         should_run = true;
         this->thread = std::thread(&PeerSender::start_listening, this);
+    }
+
+    void stop() {
+        if (listen_socket_fd == 0) return;
+        if ( ! should_run) return;
+        this->should_run = false;
+        shutdown(listen_socket_fd, SHUT_RDWR);
+        close(listen_socket_fd);
+        this->thread.join();
+        for (auto ptr = subscriber_sockets.begin(); ptr != subscriber_sockets.end(); ptr++ ) {
+            shutdown(*ptr, SHUT_RDWR);
+            close(*ptr);
+        }
     }
 
     PeerSender(const char *stream_id) : stream_id(stream_id) {

@@ -56,6 +56,10 @@ private:
                 stop();
                 return;
             }
+            if ( ! should_run) {
+                stop();
+                return;
+            }
             auto num_bytes_received = (size_t) recv_bytes_received; // Safe cast as -1 if statement catches a failure.
             void *data = malloc(num_bytes_received);
             memcpy(data, msgbuf, num_bytes_received);
@@ -66,9 +70,11 @@ private:
 public:
 
     void stop() {
+        if ( ! should_run) return;
         this->should_run = false;
         std::cout << "Stopping PeerListener" << std::endl;
         if (socket_fd != 0) {
+            shutdown(socket_fd, SHUT_RDWR);
             close(socket_fd);
         }
         if (std::this_thread::get_id() != thread.get_id()) {

@@ -36,7 +36,6 @@ private:
 
 
     void process_packet(struct sockaddr_in sender, std::pair<size_t, void *> data) {
-
         uint8_t packet_type = PeerDiscoveryPacket::get_packet_type(data.second);
         if (packet_type == PEER_DISCOVERY_UNKNOWN_PACKET_TYPE) {
             std::cout << "Received unknown peer discovery packet." << std::endl;
@@ -53,15 +52,18 @@ private:
             } else {
                 std::cout << "Failed to parse query packet." << std::endl;
             }
+            delete(peerDiscoveryQueryPacket);
         } else if (packet_type == PEER_DISCOVERY_REPLY_PACKET_TYPE) {
             auto peerDiscoveryReplyPacket = new PeerDiscoveryReplyPacket(data);
-
             if (peerDiscoveryReplyPacket->is_valid()) {
                 const char *stream_id = peerDiscoveryReplyPacket->get_stream_id();
                 std::lock_guard<std::recursive_mutex> lock(search_lock);
                 auto ptr = stream_ids_to_search_for.find(stream_id);
                 if (ptr != stream_ids_to_search_for.end()) {
-                    if (listener_already_exists(stream_id, sender.sin_addr)) return;
+                    if (listener_already_exists(stream_id, sender.sin_addr)) {
+                        delete(peerDiscoveryReplyPacket);
+                        return;
+                    }
                     StreamPacketDataReceiver *streamPacketDataReceiver = ptr->second.first;
                     auto *peer_listener = new PeerListener(sender.sin_addr, peerDiscoveryReplyPacket->get_port_number(), streamPacketDataReceiver);
                     ptr->second.second.push_back(peer_listener);
@@ -72,6 +74,7 @@ private:
             } else {
                 std::cout << "Failed to parse reply packet." << std::endl;
             }
+            delete(peerDiscoveryReplyPacket);
         }
     }
 
@@ -139,7 +142,6 @@ private:
             ssize_t recv_bytes_received;
             if ( (recv_bytes_received = recvfrom(listen_socket_fd, msgbuf, GU_EDGENT_NETWORK_BUFFER_SIZE, 0,
                                                  (struct sockaddr *) &sender, &sendsize)) <= 0) {
-                perror("recvfrom");
                 continue;
             }
 
@@ -208,6 +210,30 @@ public:
             for (auto &peerListener : peerListeners) {
                 peerListener->start();
             }
+        }
+    }
+
+    void stop() {
+        if ( ! should_run) return;
+        should_run = false;
+        shutdown(listen_socket_fd, SHUT_RDWR);
+        close(listen_socket_fd);
+        if (thread.joinable()) thread.join();
+        for (auto &kv : stream_ids_to_search_for) {
+            std::pair<StreamPacketDataReceiver*, std::list<PeerListener *> > data = kv.second;
+            for (auto ptr = data.second.begin(); ptr != data.second.end(); ptr++) {
+                PeerListener *peerListener = *ptr;
+                peerListener->stop();
+                delete(peerListener);
+            }
+            // We know the pointer points to a NetworkSource and a NetworkSource implements CascadeDeleteable
+            CascadeDeleteable *cascadeDeleteable = dynamic_cast<CascadeDeleteable*>(data.first);
+            cascadeDeleteable->delete_and_notify();
+        }
+        for (auto &kv : stream_ids_to_publish) {
+            PeerSender *peerSender = kv.second;
+            peerSender->stop();
+            delete(peerSender);
         }
     }
 

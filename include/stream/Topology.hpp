@@ -79,6 +79,8 @@ public:
             CascadeDeleteable* cascadeDeleteable = dynamic_cast<CascadeDeleteable*>(key_value_pair.second);
             cascadeDeleteable->delete_and_notify();
         }
+        peerDiscoverer->stop();
+        delete(peerDiscoverer);
     }
 };
 

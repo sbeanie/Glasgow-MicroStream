@@ -21,6 +21,7 @@ public:
 
     void receive(std::pair<size_t, void*> data) override {
         std::optional<T> optionalValue = deserialize_func(data);
+        free(data.second);
         if (optionalValue.has_value()) {
             this->publish(optionalValue.value());
         }

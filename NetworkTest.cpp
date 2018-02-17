@@ -20,7 +20,7 @@ public:
 
         for (i = 0 , ptr = values->begin() ; i < pos && ptr != values->end(); i++ , ptr++ );
 
-        if( ptr == values->end() ) {
+        if (ptr == values->end()) {
             caller->stop();
             return 0;
         } else {
