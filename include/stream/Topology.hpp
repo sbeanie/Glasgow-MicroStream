@@ -5,7 +5,6 @@
 #include "Stream.hpp"
 
 #include "network/peerdiscovery/PeerDiscoverer.hpp"
-#include "network/StreamPacket.hpp"
 
 #define DEFAULT_MULTICAST_GROUP "225.0.0.37"
 #define DEFAULT_UDP_PORT 12345
@@ -44,6 +43,10 @@ public:
 
     void send_network_data(const char *stream_id, std::pair<size_t, void*> data) {
         peerDiscoverer->send_network_data(stream_id, data);
+    }
+
+    void addNetworkSink(const char *stream_id) {
+        peerDiscoverer->register_network_sink(stream_id);
     }
 
     template <typename T>

@@ -12,72 +12,46 @@
 #include <unistd.h>
 
 #include <stream/source/NetworkSource.hpp>
+#include <network/peerdiscovery/PeerDiscoverer.hpp>
 
 class PeerListener {
 
 private:
+
+    PeerDiscoverer *peerDiscoverer;
+    char *stream_id;
+
     StreamPacketDataReceiver *streamPacketDataReceiver;
 
     std::thread thread;
-    bool should_run;
+    bool should_run, should_process_data;
 
     uint16_t port_number;
     in_addr source_addr;
     int socket_fd = 0;
 
-    void run() {
-        ssize_t recv_bytes_received;
-        struct sockaddr_in serv_addr;
-        char msgbuf[GU_EDGENT_NETWORK_BUFFER_SIZE] = {0}; //todo
+    void run();
 
-        if ((socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-            printf("\n Socket creation error \n");
-            stop();
-            return;
-        }
-
-        memset(&serv_addr, '0', sizeof(serv_addr));
-
-        serv_addr.sin_family = AF_INET;
-        serv_addr.sin_port = htons(port_number);
-        serv_addr.sin_addr = source_addr;
-
-        std::cout << "Connecting to port: " << port_number << std::endl;
-
-        if (connect(socket_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-            printf("\nConnection Failed \n");
-            stop();
-            return;
-        }
-
-        while (should_run) {
-            if ((recv_bytes_received = read(socket_fd, msgbuf, 1024)) < 0) {
-                stop();
-                return;
-            }
-            if ( ! should_run) {
-                stop();
-                return;
-            }
-            auto num_bytes_received = (size_t) recv_bytes_received; // Safe cast as -1 if statement catches a failure.
-            void *data = malloc(num_bytes_received);
-            memcpy(data, msgbuf, num_bytes_received);
-            this->streamPacketDataReceiver->receive({num_bytes_received, data});
-        }
+    void unregister_with_peer_discoverer() {
+        peerDiscoverer->unregister_peer_listener(stream_id, this);
     }
 
 public:
 
     void stop() {
-        if ( ! should_run) return;
-        this->should_run = false;
-        std::cout << "Stopping PeerListener" << std::endl;
-        if (socket_fd != 0) {
-            shutdown(socket_fd, SHUT_RDWR);
-            close(socket_fd);
+        if (should_run) {
+            this->should_run = false;
+            if (socket_fd != 0) {
+                shutdown(socket_fd, SHUT_RDWR);
+                close(socket_fd);
+            }
+            if (std::this_thread::get_id() == thread.get_id()) {
+                unregister_with_peer_discoverer();
+                peerDiscoverer->add_peer_listener_to_cleanup(this);
+            }
         }
         if (std::this_thread::get_id() != thread.get_id()) {
-            thread.join();
+            if (thread.joinable()) thread.join();
         }
     }
 
@@ -90,16 +64,26 @@ public:
     }
 
     void start() {
-        if (this->should_run) return; // todo stop()
+        should_process_data = true;
+    }
+
+    PeerListener(PeerDiscoverer *peerDiscoverer, const char *stream_id, in_addr source_addr, uint16_t port_number, StreamPacketDataReceiver* streamPacketDataReceiver) :
+            peerDiscoverer(peerDiscoverer), streamPacketDataReceiver(streamPacketDataReceiver), port_number(port_number), source_addr(source_addr) {
         this->should_run = true;
+        this->should_process_data = false;
+
+        this->stream_id = (char *) malloc(strlen(stream_id) + 1);
+        strcpy(this->stream_id, stream_id);
+
         this->thread = std::thread(&PeerListener::run, this);
     }
 
-    PeerListener(in_addr source_addr, uint16_t port_number, StreamPacketDataReceiver* streamPacketDataReceiver) :
-            streamPacketDataReceiver(streamPacketDataReceiver), port_number(port_number), source_addr(source_addr) {
-        this->should_run = false;
+    ~PeerListener() {
+        free(stream_id);
     }
 
 };
+
+#include "network/peerdiscovery/PeerListener.cpp"
 
 #endif //GU_EDGENT_PEERLISTENER_HPP

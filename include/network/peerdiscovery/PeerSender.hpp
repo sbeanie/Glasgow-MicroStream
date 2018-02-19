@@ -97,7 +97,7 @@ public:
         if (getsockname(listen_socket_fd, (struct sockaddr *) &server_address, (socklen_t *) &len ) < 0 )
             perror ( "getsockname" );
         tcp_port = ntohs(server_address.sin_port);
-        std::cout << "Providing data on port: " << tcp_port << std::endl;
+        std::cout << "[" << stream_id << "] Providing on port: " << tcp_port << std::endl;
 
         should_run = true;
         this->thread = std::thread(&PeerSender::start_listening, this);

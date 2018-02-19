@@ -1,6 +1,7 @@
 #ifndef GU_EDGENT_FIXEDDATASOURCE_H
 #define GU_EDGENT_FIXEDDATASOURCE_H
 
+#include <iostream>
 #include "Stream.hpp"
 
 template <typename T>

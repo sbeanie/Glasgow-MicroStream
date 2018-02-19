@@ -16,7 +16,7 @@ public:
 
     NetworkSink(Topology *topology, const char *stream_id, std::pair<size_t, void*> (*val_to_bytes) (T)) :
             topology(topology), stream_id(stream_id), val_to_bytes(val_to_bytes) {
-
+        topology->addNetworkSink(stream_id);
     }
 
     void receive(T val) {

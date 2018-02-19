@@ -8,7 +8,7 @@ class NumberSource : public Pollable<int> {
 
 public:
     explicit NumberSource(std::list<int>* values) {
-        this->values = std::move(values);
+        this->values = values;
     }
 
     virtual ~NumberSource() {}
@@ -52,9 +52,10 @@ int main (int, char**) {
 
     // Create two data sources that will feed the topology.
     std::list<int> values = {0,1,2,3,4,5,6,7,8,9,10};
-    NumberSource* numberSource = new NumberSource(&values);
-    Source<int>* int_source = topology->addPolledSource(std::chrono::seconds(1), numberSource);
-    Source<int>* int_source2 = topology->addFixedDataSource(values);
+    std::list<int> empty = {};
+    NumberSource* numberSource = new NumberSource(&empty);
+    Source<int>* int_source = topology->addFixedDataSource(values);
+    Source<int>* int_source2 = topology->addPolledSource(std::chrono::seconds(1), numberSource);
 
     // Union the two data sources and sink them into the network stream "numbers"
     std::list<Subscribeable<int>* > subscribers = {(Subscribeable<int>*) int_source2};
@@ -73,13 +74,15 @@ int main (int, char**) {
     NetworkSource<int>* networkSource = opt_network_int_source.value();
     networkSource->sink(print_sink);
 
-    std::cout << "Topology built.\nRunning..." << std::endl;
+    std::cout << "Topology built." << std::endl;
 
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    std::cout << "Running..." << std::endl;
 
     topology->run();
 
-    std::this_thread::sleep_for(std::chrono::seconds(15));
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 
     topology->shutdown();
     delete(topology);

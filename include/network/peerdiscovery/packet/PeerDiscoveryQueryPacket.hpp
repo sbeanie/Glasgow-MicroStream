@@ -33,7 +33,7 @@ public:
         ptr += sizeof(uint8_t);
 
         stream_id_length = *((size_t *) ptr);
-        if (data_length - sizeof(size_t) != stream_id_length) return;
+        if (data_length - sizeof(uint8_t) - sizeof(size_t) != stream_id_length) return;
         ptr += sizeof(size_t);
 
         stream_id = ptr;
@@ -54,6 +54,7 @@ public:
         char *ptr = packet;
 
         *((uint8_t *) ptr) = packet_type;
+        ptr += sizeof(uint8_t);
 
         *((size_t *) ptr) = stream_id_length;
         ptr += sizeof(size_t);

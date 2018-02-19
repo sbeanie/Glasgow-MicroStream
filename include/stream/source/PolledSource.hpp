@@ -33,6 +33,7 @@ private:
             // If the getData function requests the thread to stop we should not publish the result.
             if ( ! this->should_run) break;
 
+            std::cout << "Publishing" << std::endl;
             this->publish(val);
             std::this_thread::sleep_for(interval);
         }
@@ -49,6 +50,7 @@ public:
 
     void start() {
         this->should_run = true;
+        if (thread.joinable()) thread.join();
         this->thread = std::thread(&PolledSource::poll, this);
     }
 
