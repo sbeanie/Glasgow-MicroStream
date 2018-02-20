@@ -48,12 +48,11 @@ int main (int, char**) {
     auto print_sink = [](int val) { std::cout << "Received val " << val << " over the network." << std::endl;};
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    Topology* topology = new Topology();
+    Topology* topology = new Topology(std::chrono::seconds(1));
 
     // Create two data sources that will feed the topology.
     std::list<int> values = {0,1,2,3,4,5,6,7,8,9,10};
-    std::list<int> empty = {};
-    NumberSource* numberSource = new NumberSource(&empty);
+    NumberSource* numberSource = new NumberSource(&values);
     Source<int>* int_source = topology->addFixedDataSource(values);
     Source<int>* int_source2 = topology->addPolledSource(std::chrono::seconds(1), numberSource);
 
@@ -82,7 +81,7 @@ int main (int, char**) {
 
     topology->run();
 
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    std::this_thread::sleep_for(std::chrono::seconds(12));
 
     topology->shutdown();
     delete(topology);

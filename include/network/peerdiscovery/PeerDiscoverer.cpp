@@ -1,3 +1,4 @@
+#include <network/peerdiscovery/packet/StreamPacket.hpp>
 #include "network/peerdiscovery/PeerDiscoverer.hpp"
 
 void PeerDiscoverer::start() {
@@ -271,13 +272,20 @@ bool PeerDiscoverer::listener_already_exists(const char *stream_id, in_addr sour
 
 // SENDING
 void PeerDiscoverer::send_network_data(const char *stream_id, std::pair<size_t, void*> data) {
+    // TODO: Add separators to data to allow receiver to split messages
+    auto *stream_packet = new StreamPacket(data, false);
+    std::pair<size_t, void *> stream_packet_data = stream_packet->get_packet();
+
     std::lock_guard<std::recursive_mutex> lock(publish_lock);
     PeerSender *peerSender = nullptr;
     auto ptr = stream_ids_to_publish.find(stream_id);
     if (ptr == stream_ids_to_publish.end()) return;
 
     peerSender = ptr->second;
-    peerSender->send_data(data);
+    peerSender->send_data(stream_packet_data);
+
+    free(stream_packet_data.second);
+    delete(stream_packet);
 }
 
 void PeerDiscoverer::send_peer_discovery_reply(PeerSender *peerSender) {

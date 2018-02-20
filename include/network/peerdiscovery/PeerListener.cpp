@@ -1,3 +1,4 @@
+#include <network/peerdiscovery/packet/StreamPacket.hpp>
 #include "network/peerdiscovery/PeerListener.hpp"
 
 void PeerListener::run() {
@@ -25,6 +26,13 @@ void PeerListener::run() {
         return;
     }
 
+    // This is used to contain header data for a StreamPacket that can't yet be used to construct a partial StreamPacket
+    // as there is not yet enough data for the StreamPacket to know how much memory to allocate for itself.
+    char incomplete_header[STREAM_PACKET_MINIMUM_CONSTRUCTION_SIZE] = {1};
+    size_t incomplete_header_used_bytes = 0;
+
+    StreamPacket *streamPacket = nullptr;
+
     while (should_run) {
         if ((recv_bytes_received = read(socket_fd, msgbuf, 1024)) < 0) {
             stop();
@@ -35,12 +43,75 @@ void PeerListener::run() {
             stop();
             return;
         }
-        auto num_bytes_received = (size_t) recv_bytes_received; // Safe cast as -1 if statement catches a failure.
+
+        auto num_bytes_to_process = (size_t) recv_bytes_received; // Safe cast as -1 if statement catches a failure.
         if (should_process_data) {
-            void *data = malloc(num_bytes_received);
-            memcpy(data, msgbuf, num_bytes_received);
-            std::cout << "Received num bytes: " << num_bytes_received << std::endl;
-            this->streamPacketDataReceiver->receive({num_bytes_received, data});
+            void *data;
+            if (incomplete_header_used_bytes != 0) {
+                // Prepend existing data onto current data to meet minimum length requirements.
+                data = malloc(num_bytes_to_process + incomplete_header_used_bytes);
+
+                memcpy(data, incomplete_header, incomplete_header_used_bytes);
+                memcpy((char *) data + incomplete_header_used_bytes, msgbuf, num_bytes_to_process);
+
+                num_bytes_to_process += incomplete_header_used_bytes;
+                incomplete_header_used_bytes = 0;
+            } else {
+                // There is no incomplete header data we need to prepend.
+                data = malloc(num_bytes_to_process);
+                memcpy(data, msgbuf, num_bytes_to_process);
+            }
+
+            void *remainder = data;
+
+            while (true) {
+                size_t remaining_bytes = num_bytes_to_process - ((char *) remainder - (char *) data);
+                if (streamPacket == nullptr) {
+                    // We need to construct a new StreamPacket as we have just completed the one before.
+                    if (remaining_bytes < STREAM_PACKET_MINIMUM_CONSTRUCTION_SIZE) {
+                        // We don't yet have enough bytes to construct a StreamPacket, save remaining data until we do.
+                        memcpy(incomplete_header, remainder, remaining_bytes);
+                        incomplete_header_used_bytes = remaining_bytes;
+                        remainder = nullptr;
+                    } else {
+                        // We have enough data to construct a StreamPacket (not necessarily completely).
+                        streamPacket = new StreamPacket({remaining_bytes, remainder}, true);
+                        if (streamPacket->is_complete()) {
+                            this->streamPacketDataReceiver->receive(streamPacket->get_stream_data());
+                            remainder = streamPacket->get_remainder();
+                            delete(streamPacket);
+                            streamPacket = nullptr;
+                        } else {
+                            // If the data we had did not complete the stream packet, there will be no remainder or the
+                            // data we used was invalid.
+                            if (streamPacket->is_invalid()) {
+                                // This means we are out of sync with the sender.  We should disconnect.
+                                stop();
+                                return;
+                            }
+                        }
+                    }
+                } else {
+                    // We need to finalize a partial StreamPacket we have created.
+                    streamPacket->add_data({remaining_bytes, remainder});
+                    if (streamPacket->is_complete()) {
+                        this->streamPacketDataReceiver->receive(streamPacket->get_stream_data());
+                        remainder = streamPacket->get_remainder();
+                        delete(streamPacket);
+                        streamPacket = nullptr;
+                    } else {
+                        // If the data we had did not complete the stream packet, there will be no remainder or the
+                        // data we used was invalid.
+                        if (streamPacket->is_invalid()) {
+                            // This means we are out of sync with the sender.  We should disconnect.
+                            stop();
+                            return;
+                        }
+                    }
+                }
+                if (remainder == nullptr) break;
+            }
+            free(data);
         }
     }
 }

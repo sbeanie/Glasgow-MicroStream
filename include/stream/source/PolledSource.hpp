@@ -33,7 +33,6 @@ private:
             // If the getData function requests the thread to stop we should not publish the result.
             if ( ! this->should_run) break;
 
-            std::cout << "Publishing" << std::endl;
             this->publish(val);
             std::this_thread::sleep_for(interval);
         }

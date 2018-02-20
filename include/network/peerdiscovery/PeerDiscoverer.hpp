@@ -41,7 +41,7 @@ private:
     bool should_run;
     std::thread multicast_listening_thread;
     std::thread peer_discovery_thread;
-    std::chrono::duration<double> broadcast_period = std::chrono::seconds(5);
+    std::chrono::duration<double> broadcast_period;
 
     const char *multicast_group;
     uint16_t udp_port;
@@ -83,7 +83,8 @@ public:
         this->broadcast_period = broadcast_period;
     }
 
-    PeerDiscoverer(const char *multicast_group, uint16_t udp_port) : multicast_group(multicast_group), udp_port(udp_port) {
+    PeerDiscoverer(const char *multicast_group, uint16_t udp_port, std::chrono::duration<double> broadcast_period)
+            : broadcast_period(broadcast_period), multicast_group(multicast_group), udp_port(udp_port) {
         should_run = true;
 
         // Setup sending.

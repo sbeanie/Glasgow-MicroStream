@@ -23,7 +23,11 @@ public:
 
 
     Topology() {
-        peerDiscoverer = new PeerDiscoverer(DEFAULT_MULTICAST_GROUP, DEFAULT_UDP_PORT);
+        Topology(std::chrono::seconds(5));
+    }
+
+    Topology(std::chrono::duration<double> peer_discovery_broadcast_period) {
+        peerDiscoverer = new PeerDiscoverer(DEFAULT_MULTICAST_GROUP, DEFAULT_UDP_PORT, peer_discovery_broadcast_period);
     }
 
     template <typename T>
@@ -40,6 +44,9 @@ public:
         return polledSource;
     }
 
+    void set_broadcast_period(std::chrono::duration<double> period) {
+        peerDiscoverer->set_broadcast_period(period);
+    }
 
     void send_network_data(const char *stream_id, std::pair<size_t, void*> data) {
         peerDiscoverer->send_network_data(stream_id, data);
