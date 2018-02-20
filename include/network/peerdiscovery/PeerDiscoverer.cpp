@@ -258,6 +258,7 @@ void PeerDiscoverer::register_network_sink(const char *stream_id) {
 }
 
 bool PeerDiscoverer::listener_already_exists(const char *stream_id, in_addr source_addr) {
+    // TODO: Check ports as well.  Consider two applications serving a stream_id on a single host under different ports.
     std::lock_guard<std::recursive_mutex> lock(search_lock);
     auto ptr = stream_ids_to_search_for.find(stream_id);
     if (ptr != stream_ids_to_search_for.end()) {
@@ -272,7 +273,6 @@ bool PeerDiscoverer::listener_already_exists(const char *stream_id, in_addr sour
 
 // SENDING
 void PeerDiscoverer::send_network_data(const char *stream_id, std::pair<size_t, void*> data) {
-    // TODO: Add separators to data to allow receiver to split messages
     auto *stream_packet = new StreamPacket(data, false);
     std::pair<size_t, void *> stream_packet_data = stream_packet->get_packet();
 
