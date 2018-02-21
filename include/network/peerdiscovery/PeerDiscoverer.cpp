@@ -123,7 +123,7 @@ void PeerDiscoverer::process_packet(struct sockaddr_in sender, std::pair<size_t,
             std::lock_guard<std::recursive_mutex> lock(search_lock);
             auto ptr = stream_ids_to_search_for.find(stream_id);
             if (ptr != stream_ids_to_search_for.end()) {
-                if (listener_already_exists(stream_id, sender.sin_addr)) {
+                if (listener_already_exists(stream_id, sender.sin_addr, peerDiscoveryReplyPacket->get_port_number())) {
                     delete(peerDiscoveryReplyPacket);
                     return;
                 }
@@ -257,14 +257,17 @@ void PeerDiscoverer::register_network_sink(const char *stream_id) {
     send_peer_discovery_reply(peerSender);
 }
 
-bool PeerDiscoverer::listener_already_exists(const char *stream_id, in_addr source_addr) {
-    // TODO: Check ports as well.  Consider two applications serving a stream_id on a single host under different ports.
+bool PeerDiscoverer::listener_already_exists(const char *stream_id, in_addr source_addr, uint16_t source_port) {
     std::lock_guard<std::recursive_mutex> lock(search_lock);
     auto ptr = stream_ids_to_search_for.find(stream_id);
     if (ptr != stream_ids_to_search_for.end()) {
         std::list<PeerListener *> peerListeners = ptr->second.second;
         for (auto &peerListener : peerListeners) {
-            if (peerListener->get_source_addr().s_addr == source_addr.s_addr) return true;
+            if (peerListener->get_source_addr().s_addr == source_addr.s_addr) {
+                if (peerListener->get_port_number() == source_port) {
+                    return true;
+                }
+            }
         }
         return false;
     } else return false;
