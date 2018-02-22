@@ -108,6 +108,6 @@ public:
     }
 };
 
-#include "stream/Window.cpp"
+#include "Window.cpp"
 
 #endif

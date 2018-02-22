@@ -6,7 +6,7 @@
 #include <utility>
 #include <malloc.h>
 
-#include "network/peerdiscovery/packet/PeerDiscoveryPacketTypes.hpp"
+#include "PeerDiscoveryPacketTypes.hpp"
 
 class PeerDiscoveryReplyPacket {
     uint8_t packet_type = PEER_DISCOVERY_REPLY_PACKET_TYPE;

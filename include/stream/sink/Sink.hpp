@@ -1,7 +1,7 @@
 #ifndef _SINK_H_
 #define _SINK_H_
 
-#include "stream/Subscriber.hpp"
+#include "../Subscriber.hpp"
 
 template <typename T>
 class Sink : public Subscriber<T> {

@@ -2,7 +2,7 @@
 #define GU_EDGENT_FIXEDDATASOURCE_H
 
 #include <iostream>
-#include "Stream.hpp"
+#include "../StreamTypes.hpp"
 
 template <typename T>
 class FixedDataSource : public Source<T> {

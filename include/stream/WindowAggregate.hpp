@@ -1,7 +1,7 @@
 #ifndef _WINDOW_AGGREGATE_H_
 #define _WINDOW_AGGREGATE_H_
 
-#include <StreamTypes.hpp>
+#include "StreamTypes.hpp"
 #include <list>
 
 template <typename INPUT, typename OUTPUT>

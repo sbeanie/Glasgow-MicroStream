@@ -1,7 +1,7 @@
 #ifndef GU_EDGENT_SOURCE_H
 #define GU_EDGENT_SOURCE_H
 
-#include "Stream.hpp"
+#include "../StreamTypes.hpp"
 
 
 class Startable {
@@ -19,8 +19,8 @@ public:
 };
 
 
-#include "stream/source/FixedDataSource.hpp"
-#include "stream/source/PolledSource.hpp"
-#include "stream/source/NetworkSource.hpp"
+#include "FixedDataSource.hpp"
+#include "PolledSource.hpp"
+#include "NetworkSource.hpp"
 
 #endif //GU_EDGENT_SOURCE_H

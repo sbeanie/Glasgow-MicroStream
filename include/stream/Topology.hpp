@@ -2,9 +2,9 @@
 #define GU_EDGENT_TOPOLOGY_H
 
 #include <unordered_map>
-#include "Stream.hpp"
+#include "StreamTypes.hpp"
 
-#include "network/peerdiscovery/PeerDiscoverer.hpp"
+#include "../network/peerdiscovery/PeerDiscoverer.hpp"
 
 #define DEFAULT_MULTICAST_GROUP "225.0.0.37"
 #define DEFAULT_UDP_PORT 12345

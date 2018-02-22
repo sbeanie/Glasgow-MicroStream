@@ -1,5 +1,4 @@
-#include <network/peerdiscovery/packet/StreamPacket.hpp>
-#include "network/peerdiscovery/PeerListener.hpp"
+#include "PeerListener.hpp"
 
 void PeerListener::run() {
     ssize_t recv_bytes_received;

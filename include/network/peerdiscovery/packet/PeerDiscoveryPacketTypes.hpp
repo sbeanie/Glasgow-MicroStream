@@ -20,8 +20,8 @@ public:
     }
 };
 
-#include "network/peerdiscovery/packet/PeerDiscoveryReplyPacket.hpp"
-#include "network/peerdiscovery/packet/PeerDiscoveryQueryPacket.hpp"
+#include "PeerDiscoveryReplyPacket.hpp"
+#include "PeerDiscoveryQueryPacket.hpp"
 
 
 #endif //GU_EDGENT_PEERDISCOVERYPACKETTYPES_HPP

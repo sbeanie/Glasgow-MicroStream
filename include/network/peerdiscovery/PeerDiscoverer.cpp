@@ -1,5 +1,5 @@
-#include <network/peerdiscovery/packet/StreamPacket.hpp>
-#include "network/peerdiscovery/PeerDiscoverer.hpp"
+#include "packet/StreamPacket.hpp"
+#include "PeerDiscoverer.hpp"
 
 void PeerDiscoverer::start() {
     if (should_run) return;

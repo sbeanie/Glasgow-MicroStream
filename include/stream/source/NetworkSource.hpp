@@ -1,7 +1,7 @@
 #ifndef GU_EDGENT_NETWORKSOURCE_H
 #define GU_EDGENT_NETWORKSOURCE_H
 
-#include "Stream.hpp"
+#include "../StreamTypes.hpp"
 #include <optional>
 
 class StreamPacketDataReceiver {

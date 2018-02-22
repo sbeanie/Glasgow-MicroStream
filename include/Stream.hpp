@@ -1,7 +1,7 @@
 #ifndef _STREAM_H_
 #define _STREAM_H_
 
-#include "StreamTypes.hpp"
+#include "stream/StreamTypes.hpp"
 
 #include "stream/TwoTypeStream.hpp"
 #include "stream/SplitStream.hpp"

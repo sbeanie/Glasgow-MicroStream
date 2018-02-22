@@ -11,8 +11,10 @@
 #include <iostream>
 #include <unistd.h>
 
-#include <stream/source/NetworkSource.hpp>
-#include <network/peerdiscovery/PeerDiscoverer.hpp>
+#include "../../stream/source/NetworkSource.hpp"
+#include "PeerDiscoverer.hpp"
+#include "packet/StreamPacket.hpp"
+
 
 class PeerListener {
 
@@ -84,6 +86,6 @@ public:
 
 };
 
-#include "network/peerdiscovery/PeerListener.cpp"
+#include "PeerListener.cpp"
 
 #endif //GU_EDGENT_PEERLISTENER_HPP

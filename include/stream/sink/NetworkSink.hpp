@@ -1,7 +1,7 @@
 #ifndef GU_EDGENT_NETWORKSINK_H
 #define GU_EDGENT_NETWORKSINK_H
 
-#include "Stream.hpp"
+#include "../StreamTypes.hpp"
 
 template <typename T>
 class NetworkSink : public Subscriber<T> {

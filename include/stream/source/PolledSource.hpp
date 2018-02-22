@@ -2,7 +2,7 @@
 #define GU_EDGENT_POLLEDSOURCE_H
 
 #include <iostream>
-#include "Stream.hpp"
+#include "../StreamTypes.hpp"
 
 template <typename T>
 class PolledSource;

@@ -13,9 +13,9 @@
 #include <cstring>
 #include <iostream>
 #include <unistd.h>
-#include <stream/source/NetworkSource.hpp>
 
-#include "network/peerdiscovery/packet/PeerDiscoveryPacketTypes.hpp"
+#include "../../stream/source/NetworkSource.hpp"
+#include "packet/PeerDiscoveryPacketTypes.hpp"
 
 #ifndef GU_EDGENT_NETWORK_BUFFER_SIZE
 #define GU_EDGENT_NETWORK_BUFFER_SIZE 1024
@@ -103,9 +103,9 @@ public:
     }
 };
 
-#include "network/peerdiscovery/PeerListener.hpp"
-#include "network/peerdiscovery/PeerSender.hpp"
+#include "PeerListener.hpp"
+#include "PeerSender.hpp"
 
-#include "network/peerdiscovery/PeerDiscoverer.cpp"
+#include "PeerDiscoverer.cpp"
 
 #endif //GU_EDGENT_PEERDISCOVERER_H
