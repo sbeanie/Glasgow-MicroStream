@@ -65,8 +65,8 @@ public:
 
     bool delete_and_notify() override {
         if (this->subscribeables.size() != 0) return false;
+        auto subscribeable = (Subscribeable<OUTPUT> *) this;
         for (auto subscribersIterator = this->subscribers.begin(); subscribersIterator != this->subscribers.end(); subscribersIterator++) {
-            Subscribeable<std::pair<int, std::list<T> > >* subscribeable = this;
             (*subscribersIterator)->notify_subscribeable_deleted(subscribeable);
         }
         this->stop();

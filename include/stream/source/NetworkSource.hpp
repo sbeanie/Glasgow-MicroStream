@@ -2,7 +2,7 @@
 #define GU_EDGENT_NETWORKSOURCE_H
 
 #include "../StreamTypes.hpp"
-#include <optional>
+#include <boost/optional.hpp>
 
 class StreamPacketDataReceiver {
 
@@ -13,15 +13,15 @@ public:
 template <typename T>
 class NetworkSource : public TwoTypeStream<std::pair<size_t, void*>, T>, public StreamPacketDataReceiver {
 
-    std::optional<T> (*deserialize_func) (std::pair<size_t, void *>);
+    boost::optional<T> (*deserialize_func) (std::pair<size_t, void *>);
 
 public:
 
-    NetworkSource(std::optional<T> (*deserialize_func) (std::pair<size_t, void *>)) : deserialize_func(deserialize_func) {};
+    NetworkSource(boost::optional<T> (*deserialize_func) (std::pair<size_t, void *>)) : deserialize_func(deserialize_func) {};
 
     void receive(std::pair<size_t, void*> data) override {
-        std::optional<T> optionalValue = deserialize_func(data);
-        if (optionalValue.has_value()) {
+        boost::optional<T> optionalValue = deserialize_func(data);
+        if (optionalValue.is_initialized()) {
             this->publish(optionalValue.value());
         }
     }

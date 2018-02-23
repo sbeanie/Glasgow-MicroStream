@@ -29,6 +29,6 @@ public:
     virtual ~Sink() {}
 };
 
-#include "stream/sink/NetworkSink.hpp"
+#include "NetworkSink.hpp"
 
 #endif

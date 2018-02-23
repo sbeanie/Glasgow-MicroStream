@@ -41,8 +41,8 @@ int main (int, char**) {
         return std::pair<size_t, void*>(sizeof(val), int_ptr);
     };
 
-    std::optional<int> (*byte_array_to_int) (std::pair<size_t, void*>) = [] (std::pair<size_t, void*> data) {
-        return std::optional<int>(*((int*) data.second));
+    boost::optional<int> (*byte_array_to_int) (std::pair<size_t, void*>) = [] (std::pair<size_t, void*> data) {
+        return boost::optional<int>(*((int*) data.second));
     };
 
     auto print_sink = [](int val) { std::cout << "Received val " << val << " over the network." << std::endl;};
@@ -63,8 +63,8 @@ int main (int, char**) {
 
     // Create a new topology source that will read data from the network (potentially from a different sensor)
     // This call fails if another source exists with the same stream_id.
-    std::optional<NetworkSource<int>*> opt_network_int_source = topology->addNetworkSource("numbers", byte_array_to_int);
-    if (! opt_network_int_source.has_value()) {
+    boost::optional<NetworkSource<int>*> opt_network_int_source = topology->addNetworkSource("numbers", byte_array_to_int);
+    if (! opt_network_int_source.is_initialized()) {
         std::cout << "Failed to create network source" << std::endl;
         exit(1);
     }

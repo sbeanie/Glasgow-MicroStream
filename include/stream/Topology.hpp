@@ -2,6 +2,7 @@
 #define GU_EDGENT_TOPOLOGY_H
 
 #include <unordered_map>
+#include <boost/optional.hpp>
 #include "StreamTypes.hpp"
 
 #include "../network/peerdiscovery/PeerDiscoverer.hpp"
@@ -23,7 +24,7 @@ public:
 
 
     Topology() {
-        Topology(std::chrono::seconds(5));
+        peerDiscoverer = new PeerDiscoverer(DEFAULT_MULTICAST_GROUP, DEFAULT_UDP_PORT, std::chrono::seconds(5));
     }
 
     Topology(std::chrono::duration<double> peer_discovery_broadcast_period) {
@@ -57,7 +58,7 @@ public:
     }
 
     template <typename T>
-    std::optional<NetworkSource<T>*> addNetworkSource(const char *stream_id, std::optional<T> (*deserialize_func) (std::pair<size_t, void *>)) {
+    boost::optional<NetworkSource<T>* > addNetworkSource(const char *stream_id, boost::optional<T> (*deserialize_func) (std::pair<size_t, void *>)) {
         auto *networkSource = new NetworkSource<T>(deserialize_func);
         bool added = peerDiscoverer->add_network_source(networkSource, stream_id);
 
@@ -65,7 +66,7 @@ public:
             return networkSource;
         } else {
             networkSource->delete_and_notify();
-            return std::nullopt;
+            return boost::optional<NetworkSource<T>* >();
         }
     }
 
