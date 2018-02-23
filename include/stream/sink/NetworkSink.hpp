@@ -10,17 +10,17 @@ private:
 
     Topology *topology;
     const char *stream_id;
-    std::pair<size_t, void*> (*val_to_bytes) (T);
+    std::pair<uint32_t, void*> (*val_to_bytes) (T);
 
 public:
 
-    NetworkSink(Topology *topology, const char *stream_id, std::pair<size_t, void*> (*val_to_bytes) (T)) :
+    NetworkSink(Topology *topology, const char *stream_id, std::pair<uint32_t, void*> (*val_to_bytes) (T)) :
             topology(topology), stream_id(stream_id), val_to_bytes(val_to_bytes) {
         topology->addNetworkSink(stream_id);
     }
 
     void receive(T val) {
-        std::pair<size_t, void*> data = val_to_bytes(val);
+        std::pair<uint32_t, void*> data = val_to_bytes(val);
         topology->send_network_data(stream_id, data);
         free(data.second);
     }

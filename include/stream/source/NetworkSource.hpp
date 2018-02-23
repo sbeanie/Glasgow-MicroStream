@@ -7,19 +7,19 @@
 class StreamPacketDataReceiver {
 
 public:
-    virtual void receive(std::pair<size_t, void*> data) = 0;
+    virtual void receive(std::pair<uint32_t, void*> data) = 0;
 };
 
 template <typename T>
-class NetworkSource : public TwoTypeStream<std::pair<size_t, void*>, T>, public StreamPacketDataReceiver {
+class NetworkSource : public TwoTypeStream<std::pair<uint32_t, void*>, T>, public StreamPacketDataReceiver {
 
-    boost::optional<T> (*deserialize_func) (std::pair<size_t, void *>);
+    boost::optional<T> (*deserialize_func) (std::pair<uint32_t, void *>);
 
 public:
 
-    NetworkSource(boost::optional<T> (*deserialize_func) (std::pair<size_t, void *>)) : deserialize_func(deserialize_func) {};
+    NetworkSource(boost::optional<T> (*deserialize_func) (std::pair<uint32_t, void *>)) : deserialize_func(deserialize_func) {};
 
-    void receive(std::pair<size_t, void*> data) override {
+    void receive(std::pair<uint32_t, void*> data) override {
         boost::optional<T> optionalValue = deserialize_func(data);
         if (optionalValue.is_initialized()) {
             this->publish(optionalValue.value());

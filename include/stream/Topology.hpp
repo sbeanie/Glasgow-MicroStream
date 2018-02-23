@@ -49,7 +49,7 @@ public:
         peerDiscoverer->set_broadcast_period(period);
     }
 
-    void send_network_data(const char *stream_id, std::pair<size_t, void*> data) {
+    void send_network_data(const char *stream_id, std::pair<uint32_t, void*> data) {
         peerDiscoverer->send_network_data(stream_id, data);
     }
 
@@ -58,7 +58,7 @@ public:
     }
 
     template <typename T>
-    boost::optional<NetworkSource<T>* > addNetworkSource(const char *stream_id, boost::optional<T> (*deserialize_func) (std::pair<size_t, void *>)) {
+    boost::optional<NetworkSource<T>* > addNetworkSource(const char *stream_id, boost::optional<T> (*deserialize_func) (std::pair<uint32_t, void *>)) {
         auto *networkSource = new NetworkSource<T>(deserialize_func);
         bool added = peerDiscoverer->add_network_source(networkSource, stream_id);
 

@@ -11,21 +11,21 @@
 class PeerDiscoveryReplyPacket {
     uint8_t packet_type = PEER_DISCOVERY_REPLY_PACKET_TYPE;
     uint16_t port_number;
-    size_t stream_id_length;
+    uint32_t stream_id_length;
     const char *stream_id;
 
     bool valid = false;
 
     char *data_ptr = nullptr;
 
-    size_t min_packet_size = sizeof(uint8_t) + sizeof(size_t) + sizeof(uint16_t) + 1;
+    size_t min_packet_size = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t) + 1;
 
 public:
 
-    explicit PeerDiscoveryReplyPacket(std::pair<size_t, void*> data) {
-        size_t data_length = data.first;
+    explicit PeerDiscoveryReplyPacket(std::pair<uint32_t, void*> data) {
+        uint32_t data_length = data.first;
         if (data_length < min_packet_size) {
-            std::cout << "A" << std::endl;
+            std::cerr << "Minimum reply packet length not met.  Discarding..." << std::endl;
             return;
         }
 
@@ -34,7 +34,7 @@ public:
 
         packet_type = *((uint8_t *) ptr);
         if (packet_type != PEER_DISCOVERY_REPLY_PACKET_TYPE) {
-            std::cout << "B" << std::endl;
+            std::cerr << "Data provided to parse is not a reply packet. Discarding..." << std::endl;
             return;
         }
         ptr += sizeof(uint8_t);
@@ -42,12 +42,12 @@ public:
         port_number = *((uint16_t *) ptr);
         ptr += sizeof(uint16_t);
 
-        stream_id_length = *((size_t *) ptr);
-        if (data_length - sizeof(size_t) - sizeof(uint8_t) - sizeof(uint16_t) != stream_id_length) {
-            std::cout << "C" << std::endl;
+        stream_id_length = *((uint32_t *) ptr);
+        if (data_length - sizeof(uint32_t) - sizeof(uint8_t) - sizeof(uint16_t) != stream_id_length) {
+            std::cerr << "Malformed reply packet.  Discarding..." << std::endl;
             return;
         }
-        ptr += sizeof(size_t);
+        ptr += sizeof(uint32_t);
 
         stream_id = ptr;
         valid = true;
@@ -66,7 +66,7 @@ public:
     }
 
     std::pair<size_t, void*> get_packet_data() {
-        size_t packet_size = sizeof(uint8_t) + sizeof(uint16_t) + sizeof(size_t) + stream_id_length;
+        size_t packet_size = sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint32_t) + stream_id_length;
         auto *packet = (char *) malloc(packet_size);
         char *ptr = packet;
 
@@ -76,8 +76,8 @@ public:
         *((uint16_t *) ptr) = port_number;
         ptr += sizeof(uint16_t);
 
-        *((size_t *) ptr) = stream_id_length;
-        ptr += sizeof(size_t);
+        *((uint32_t *) ptr) = stream_id_length;
+        ptr += sizeof(uint32_t);
 
         memcpy(ptr, stream_id, stream_id_length);
 

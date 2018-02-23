@@ -97,7 +97,7 @@ void PeerDiscoverer::unregister_peer_listener(const char *stream_id, PeerListene
     }
 }
 
-void PeerDiscoverer::process_packet(struct sockaddr_in sender, std::pair<size_t, void *> data) {
+void PeerDiscoverer::process_packet(struct sockaddr_in sender, std::pair<uint32_t, void *> data) {
     if (data.first < sizeof(uint8_t)) return;
     uint8_t packet_type = PeerDiscoveryPacket::get_packet_type(data.second);
     if (packet_type == PEER_DISCOVERY_UNKNOWN_PACKET_TYPE) {
@@ -144,7 +144,7 @@ void PeerDiscoverer::process_packet(struct sockaddr_in sender, std::pair<size_t,
 
 void PeerDiscoverer::start_listening() {
     struct sockaddr_in addr;
-    size_t num_bytes_received;
+    uint32_t num_bytes_received;
     struct ip_mreq mreq;
     char msgbuf[GU_EDGENT_NETWORK_BUFFER_SIZE];
     u_int reuse_addr = 1;
@@ -193,10 +193,16 @@ void PeerDiscoverer::start_listening() {
         ssize_t recv_bytes_received;
         if ( (recv_bytes_received = recvfrom(listen_socket_fd, msgbuf, GU_EDGENT_NETWORK_BUFFER_SIZE, 0,
                                              (struct sockaddr *) &sender, &sendsize)) <= 0) {
+            if (should_run) {
+                std::cout << "Failed to receive peer discovery packet." << std::endl;
+            }
             continue;
         }
 
-        num_bytes_received = (size_t) recv_bytes_received; // Safe cast as -1 if statement catches a failure.
+        // Safe cast as -1 if statement catches a failure.
+        // Casting to 32_bit is a safe operation as msgbuf is only 1024 bytes.
+        num_bytes_received = (uint32_t) recv_bytes_received;
+
         void *data = malloc(num_bytes_received);
         memcpy(data, msgbuf, num_bytes_received);
         process_packet(sender, {num_bytes_received, data});
@@ -275,9 +281,9 @@ bool PeerDiscoverer::listener_already_exists(const char *stream_id, in_addr sour
 
 
 // SENDING
-void PeerDiscoverer::send_network_data(const char *stream_id, std::pair<size_t, void*> data) {
+void PeerDiscoverer::send_network_data(const char *stream_id, std::pair<uint32_t, void*> data) {
     auto *stream_packet = new StreamPacket(data, false);
-    std::pair<size_t, void *> stream_packet_data = stream_packet->get_packet();
+    std::pair<uint32_t, void *> stream_packet_data = stream_packet->get_packet();
 
     std::lock_guard<std::recursive_mutex> lock(publish_lock);
     PeerSender *peerSender = nullptr;

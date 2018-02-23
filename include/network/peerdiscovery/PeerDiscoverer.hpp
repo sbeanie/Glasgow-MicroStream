@@ -49,7 +49,7 @@ private:
     struct sockaddr_in send_addr;
 
 
-    void process_packet(struct sockaddr_in sender, std::pair<size_t, void *> data);
+    void process_packet(struct sockaddr_in sender, std::pair<uint32_t, void *> data);
 
     bool listener_already_exists(const char *stream_id, in_addr source_addr, uint16_t source_port);
 
@@ -70,7 +70,7 @@ public:
 
     void register_network_sink(const char *stream_id);
 
-    void send_network_data(const char *stream_id, std::pair<size_t, void*> data);
+    void send_network_data(const char *stream_id, std::pair<uint32_t, void*> data);
 
     void start();
 

@@ -33,7 +33,7 @@ void PeerListener::run() {
     StreamPacket *streamPacket = nullptr;
 
     while (should_run) {
-        if ((recv_bytes_received = read(socket_fd, msgbuf, 1024)) < 0) {
+        if ((recv_bytes_received = read(socket_fd, msgbuf, GU_EDGENT_NETWORK_BUFFER_SIZE)) < 0) {
             stop();
             return;
         }
@@ -43,7 +43,9 @@ void PeerListener::run() {
             return;
         }
 
-        auto num_bytes_to_process = (size_t) recv_bytes_received; // Safe cast as -1 if statement catches a failure.
+        // Safe cast as -1 if statement catches a failure.
+        // Casting to uint32_t is safe as buffer size is smaller.
+        auto num_bytes_to_process = (uint32_t) recv_bytes_received;
         if (should_process_data) {
             void *data;
             if (incomplete_header_used_bytes != 0) {
@@ -64,7 +66,7 @@ void PeerListener::run() {
             void *remainder = data;
 
             while (true) {
-                size_t remaining_bytes = num_bytes_to_process - ((char *) remainder - (char *) data);
+                uint32_t remaining_bytes = (uint32_t) (num_bytes_to_process - ((char *) remainder - (char *) data));
                 if (streamPacket == nullptr) {
                     // We need to construct a new StreamPacket as we have just completed the one before.
                     if (remaining_bytes < STREAM_PACKET_MINIMUM_CONSTRUCTION_SIZE) {

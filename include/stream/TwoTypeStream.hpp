@@ -160,7 +160,7 @@ public:
      * is freed upon data transmission.
      * @return
      */
-    NetworkSink<OUTPUT>* networkSink(Topology *topology, const char *stream_id, std::pair<size_t, void*> (*val_to_bytes) (OUTPUT)) {
+    NetworkSink<OUTPUT>* networkSink(Topology *topology, const char *stream_id, std::pair<uint32_t, void*> (*val_to_bytes) (OUTPUT)) {
         auto *networkSink = new NetworkSink<OUTPUT>(topology, stream_id, val_to_bytes);
         this->subscribe(networkSink);
         return networkSink;

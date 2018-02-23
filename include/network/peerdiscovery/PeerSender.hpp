@@ -23,7 +23,7 @@ private:
     int addrlen = sizeof(address);
 
     std::recursive_mutex subscriber_sockets_lock;
-    std::list<int> subscriber_sockets;
+    std::unordered_map<int, struct sockaddr_in> subscriber_sockets;
 
     std::thread thread;
     bool should_run = false;
@@ -38,8 +38,9 @@ private:
 //                perror("accept");
             }
             if ( ! should_run) return;
+            std::cout << "[" << stream_id << "] Connection from: " << inet_ntoa(address.sin_addr) << ":" << address.sin_port << std::endl;
             std::lock_guard<std::recursive_mutex> lock(subscriber_sockets_lock);
-            subscriber_sockets.push_back(new_socket);
+            subscriber_sockets.insert({new_socket, address});
         }
     }
 
@@ -56,12 +57,19 @@ public:
     void send_data(std::pair<size_t, void *> data) {
         std::lock_guard<std::recursive_mutex> lock(subscriber_sockets_lock);
         if (subscriber_sockets.size() == 0) {
-            std::cout << "No subscribers to send data to." << std::endl;
+            std::cout << "[" << stream_id << "] No subscribers to send data to." << std::endl;
         }
-        subscriber_sockets.remove_if([data](int socket) {
-            ssize_t bytes_sent = send(socket, data.second, data.first, 0 );
-            return bytes_sent == -1;
-        });
+        std::unordered_map<int, struct sockaddr_in>::iterator itr = subscriber_sockets.begin();
+        while (itr != subscriber_sockets.end()) {
+            ssize_t bytes_sent = send(itr->first, data.second, data.first, 0 );
+            if (bytes_sent < 0) {
+                std::cerr << "[" << stream_id << "] Failed to send to subscriber " << inet_ntoa(itr->second.sin_addr) << ":" << itr->second.sin_port << ".  Removing..." << std::endl;
+                // Remove
+                itr = subscriber_sockets.erase(itr);
+            } else {
+                itr++;
+            }
+        }
     }
 
     void start() {
@@ -111,8 +119,8 @@ public:
         close(listen_socket_fd);
         this->thread.join();
         for (auto ptr = subscriber_sockets.begin(); ptr != subscriber_sockets.end(); ptr++ ) {
-            shutdown(*ptr, SHUT_RDWR);
-            close(*ptr);
+            shutdown(ptr->first, SHUT_RDWR);
+            close(ptr->first);
         }
     }
 
