@@ -180,7 +180,7 @@ void PeerDiscoverer::start_listening() {
     mreq.imr_multiaddr.s_addr=inet_addr(this->multicast_group);
     mreq.imr_interface.s_addr=htonl(INADDR_ANY);
     if (setsockopt(listen_socket_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
-        perror("setsockopt");
+        perror("PeerDiscovery: setsockopt");
         exit(1);
     }
 

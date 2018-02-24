@@ -75,24 +75,20 @@ public:
     void start() {
         int opt = 1;
 
-        // Creating socket file descriptor
         if ((listen_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
             perror("socket failed");
         }
 
-        // Forcefully attaching socket to the port 8080
         if (setsockopt(listen_socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
                        &opt, sizeof(opt))) {
-            perror("setsockopt");
+            perror("PeerSender:");
         }
 
         address.sin_family = AF_INET;
         address.sin_addr.s_addr = INADDR_ANY;
         address.sin_port = htons(tcp_port);
 
-        // Forcefully attaching socket to the port 8080
-        if (bind(listen_socket_fd, (struct sockaddr *)&address,
-                 sizeof(address))<0) {
+        if (bind(listen_socket_fd, (struct sockaddr *) &address, sizeof(address) ) < 0) {
             perror("bind failed");
         }
 

@@ -10,6 +10,7 @@
 #include "stream/Window.hpp"
 #include "stream/WindowAggregate.hpp"
 #include "stream/WindowBatch.hpp"
+#include "stream/StatefulStream.hpp"
 
 #include "stream/source/Source.hpp"
 #include "stream/Topology.hpp"

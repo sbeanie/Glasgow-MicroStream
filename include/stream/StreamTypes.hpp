@@ -1,8 +1,6 @@
 #ifndef _STREAM_TYPES_H_
 #define _STREAM_TYPES_H_
 
-#include <list>
-
 class Topology;
 
 template <typename T>
@@ -39,5 +37,11 @@ class SplitStream;
 
 template <typename T>
 class NetworkSink;
+
+template <typename INPUT, typename OUTPUT>
+class StatefulStream;
+
+template <typename INPUT, typename OUTPUT>
+class StatefulMap;
 
 #endif

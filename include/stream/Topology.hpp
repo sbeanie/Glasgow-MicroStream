@@ -16,19 +16,29 @@ class Topology {
 private:
     std::list<Startable*> startables;
 
-    PeerDiscoverer* peerDiscoverer;
+    PeerDiscoverer* peerDiscoverer = nullptr;
 
     std::unordered_map<std::string, StreamPacketDataReceiver*> network_source_map;
+
+    void init_peer_discovery(const char *multicast_group, uint16_t udp_port, std::chrono::duration<double> broadcast_period) {
+        peerDiscoverer = new PeerDiscoverer(multicast_group, udp_port, broadcast_period);
+    }
 
 public:
 
 
     Topology() {
-        peerDiscoverer = new PeerDiscoverer(DEFAULT_MULTICAST_GROUP, DEFAULT_UDP_PORT, std::chrono::seconds(5));
+        init_peer_discovery(DEFAULT_MULTICAST_GROUP, DEFAULT_UDP_PORT, std::chrono::seconds(5));
     }
 
     Topology(std::chrono::duration<double> peer_discovery_broadcast_period) {
-        peerDiscoverer = new PeerDiscoverer(DEFAULT_MULTICAST_GROUP, DEFAULT_UDP_PORT, peer_discovery_broadcast_period);
+        init_peer_discovery(DEFAULT_MULTICAST_GROUP, DEFAULT_UDP_PORT, peer_discovery_broadcast_period);
+    }
+
+    Topology(bool without_networking) {
+        if ( ! without_networking) {
+            init_peer_discovery(DEFAULT_MULTICAST_GROUP, DEFAULT_UDP_PORT, std::chrono::seconds(5));
+        }
     }
 
     template <typename T>
@@ -54,11 +64,19 @@ public:
     }
 
     void addNetworkSink(const char *stream_id) {
+        if (peerDiscoverer == nullptr) {
+            std::cerr << "Cannot add a network sink with peer discovery disabled." << std::endl;
+            exit(1);
+        }
         peerDiscoverer->register_network_sink(stream_id);
     }
 
     template <typename T>
     boost::optional<NetworkSource<T>* > addNetworkSource(const char *stream_id, boost::optional<T> (*deserialize_func) (std::pair<uint32_t, void *>)) {
+        if (peerDiscoverer == nullptr) {
+            std::cerr << "Cannot add a network source with peer discovery disabled." << std::endl;
+            exit(1);
+        }
         auto *networkSource = new NetworkSource<T>(deserialize_func);
         bool added = peerDiscoverer->add_network_source(networkSource, stream_id);
 
@@ -71,7 +89,7 @@ public:
     }
 
     void run() {
-        peerDiscoverer->start();
+        if (peerDiscoverer != nullptr) peerDiscoverer->start();
         for (auto &startable : startables) {
             (*startable).start();
         }
@@ -90,8 +108,10 @@ public:
             CascadeDeleteable* cascadeDeleteable = dynamic_cast<CascadeDeleteable*>(key_value_pair.second);
             cascadeDeleteable->delete_and_notify();
         }
-        peerDiscoverer->stop();
-        delete(peerDiscoverer);
+        if (peerDiscoverer != nullptr) {
+            peerDiscoverer->stop();
+            delete(peerDiscoverer);
+        }
     }
 };
 

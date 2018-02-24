@@ -106,6 +106,13 @@ public:
         return map_stream;
     }
 
+    template <typename X>
+    StatefulStream<OUTPUT, X>* map_stateful(StatefulMap<OUTPUT, X> *statefulMap) {
+        StatefulStream<OUTPUT, X> *statefulStream = new StatefulStream<OUTPUT, X>(statefulMap);
+        this->subscribe(statefulStream);
+        return statefulStream;
+    }
+
     /**
      * Splits the current stream into several streams based on the output of a splitting function.
      * @param num_streams The number of streams the output should be split into.
