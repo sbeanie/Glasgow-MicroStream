@@ -108,16 +108,19 @@ private:
             // We have at least one packet
             add_data(std::pair<uint32_t, void *>(this->data_length, ptr));
             ptr += this->data_length;
-            add_data(std::pair<uint32_t, void *>(end_delimiter_size, (void *) end_delimiter));
+            add_data(std::pair<uint32_t, void *>(end_delimiter_size, (void *) ptr));
             ptr += this->end_delimiter_size;
 
             // Sanity check
             if (data.first == this->complete_packet_length && ptr != (char *) data.second + data.first) {
-                std::cout << "Error: Invalid stream packet parsed." << std::endl;
+                std::cerr << "Invalid stream packet parsed." << std::endl;
                 invalid = true;
                 return;
             }
-            complete = true;
+
+            current_packet_length = complete_packet_length;
+            current_data_ptr = (char *) packet_data + complete_packet_length;
+            check_if_done();
             if (data.first > this->complete_packet_length) {
                 remainder = ptr;
             }
@@ -134,6 +137,7 @@ private:
             } else {
                 this->complete = false;
                 this->invalid = true;
+                return;
             }
         } else if (current_packet_length > complete_packet_length) {
             this->invalid = true;

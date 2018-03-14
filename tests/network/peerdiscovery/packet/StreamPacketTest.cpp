@@ -19,7 +19,7 @@ protected:
     }
 };
 
-TEST_F(StreamPacketTest, EnoughDataButBadDelimiter) {
+TEST_F(StreamPacketTest, ConstructableButBadDelimiter) {
     data = calloc(1, STREAM_PACKET_MINIMUM_CONSTRUCTION_SIZE);
     streamPacket = new StreamPacket({STREAM_PACKET_MINIMUM_CONSTRUCTION_SIZE, data}, true);
     EXPECT_TRUE(streamPacket->is_invalid());
@@ -33,7 +33,7 @@ TEST_F(StreamPacketTest, NotEnoughDataToConstruct) {
     EXPECT_FALSE(streamPacket->is_complete());
 }
 
-TEST_F(StreamPacketTest, EnoughDataWithDelimiter) {
+TEST_F(StreamPacketTest, ConstructableWithDelimiter) {
     data = calloc(1, STREAM_PACKET_MINIMUM_CONSTRUCTION_SIZE);
     memcpy(data, STREAM_PACKET_START_DELIMITER, strlen(STREAM_PACKET_START_DELIMITER) + 1);
     streamPacket = new StreamPacket({STREAM_PACKET_MINIMUM_CONSTRUCTION_SIZE, data}, true);
@@ -134,6 +134,31 @@ TEST_F(StreamPacketTest, TooMuchDataLater) {
     ASSERT_EQ(remainder_ptr, streamPacket->get_remainder());
 }
 
+
+TEST_F(StreamPacketTest, FullPacketButBadEndDelimiter) {
+    uint32_t total_size = this->delimiters_size + sizeof(uint32_t) + 1; // + 1 for data
+    data = calloc(1, total_size);
+    char *ptr = (char *) data;
+
+    memcpy(data, STREAM_PACKET_START_DELIMITER, strlen(STREAM_PACKET_START_DELIMITER) + 1);
+    ptr += strlen(STREAM_PACKET_START_DELIMITER) + 1;
+
+    *((uint32_t *) ptr) = 1;
+    ptr += sizeof(uint32_t);
+
+    *ptr = 'a';
+    ptr += 1;
+
+    // Skip copying end delimiter
+    // memcpy(ptr, STREAM_PACKET_END_DELIMITER, strlen(STREAM_PACKET_END_DELIMITER) + 1);
+    // ptr += strlen(STREAM_PACKET_END_DELIMITER) + 1;
+
+    streamPacket = new StreamPacket({total_size, data}, true);
+
+    EXPECT_FALSE(streamPacket->is_complete());
+    EXPECT_TRUE(streamPacket->is_invalid());
+    EXPECT_EQ(nullptr, streamPacket->get_remainder());
+}
 
 TEST_F(StreamPacketTest, ValidPacket) {
     uint32_t total_size = this->delimiters_size + sizeof(uint32_t) + 1; // + 1 for data
