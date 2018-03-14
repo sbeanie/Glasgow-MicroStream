@@ -10,8 +10,11 @@ find_package(Threads REQUIRED)
 include_directories ("${PROJECT_SOURCE_DIR}/include")
 
 #add_executable(GU-Edgent main.cpp)
-add_executable(GU-Edgent MapTest.cpp)
+add_executable(GU-Edgent NetworkTest.cpp)
 
 #find_package( Boost 1.66 REQUIRED COMPONENTS optional )
 #TARGET_LINK_LIBRARIES( GU-Edgent LINK_PUBLIC ${Boost_LIBRARIES} Threads::Threads )
-TARGET_LINK_LIBRARIES( GU-Edgent LINK_PUBLIC Threads::Threads )
+TARGET_LINK_LIBRARIES( GU-Edgent LINK_PUBLIC Threads::Threads)
+
+add_executable(runTests tests/main.cpp)
+TARGET_LINK_LIBRARIES(runTests LINK_PUBLIC Threads::Threads gtest)
