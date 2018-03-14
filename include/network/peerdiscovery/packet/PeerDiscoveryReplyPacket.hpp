@@ -18,6 +18,7 @@ class PeerDiscoveryReplyPacket {
 
     char *data_ptr = nullptr;
 
+    // Minimum packet size should be size of packet type, size of port number, sizeof stream_id_length, + 1 for minimum stream_id_size
     size_t min_packet_size = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t) + 1;
 
 public:

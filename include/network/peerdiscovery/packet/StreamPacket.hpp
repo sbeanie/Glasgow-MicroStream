@@ -14,17 +14,22 @@
 class StreamPacket {
 
 private:
-
+    // Set to true when data received is incorrectly formatted.
     bool invalid = false;
+
+    // Set to true when the stream packet has not fully been received yet, but it is still structured ok.
     bool complete = false;
 
+    // These are used when an incomplete stream packet needs more data.
     char *current_data_ptr;
-    uint32_t current_data_length;
+    uint32_t current_packet_length;
 
+    // Points to extra data that is not a part of this Stream Packet if a stream packet was constructed with too much data
     void *remainder = nullptr;
 
+    // Points to the allocated memory for a stream packet
     void *packet_data = nullptr;
-    uint32_t packet_length = 0;
+    uint32_t complete_packet_length = 0;
 
     /** PACKET STRUCTURE **/
     const char *start_delimiter = STREAM_PACKET_START_DELIMITER;
@@ -41,8 +46,9 @@ private:
 
 
     void encapsulate_data(std::pair<uint32_t, void*> data) {
-        this->packet_length = delimiters_size + sizeof(uint32_t) + data.first;
-        this->packet_data = malloc(this->packet_length);
+        // This stream packet will include the delimiters, the data's length and the data itself.
+        this->complete_packet_length = delimiters_size + sizeof(uint32_t) + data.first;
+        this->packet_data = malloc(this->complete_packet_length);
 
         char *ptr = (char *) this->packet_data;
 
@@ -66,33 +72,39 @@ private:
     void unpack_stream_packet(std::pair<uint32_t, void *> data) {
         char *ptr = (char *) data.second;
 
+        // Check the data starts with the stream packet start delimiter
         if (strncmp(start_delimiter, ptr, start_delimiter_size) != 0) {
             this->invalid = true;
             return;
         }
         ptr += start_delimiter_size;
 
+        // Get the data length
         this->data_length = *((uint32_t *) ptr);
         ptr += sizeof(uint32_t);
 
         // We can now allocate the memory for the entire packet.
-        this->packet_length = delimiters_size + sizeof(uint32_t) + data_length;
-        this->packet_data = malloc(packet_length);
+        this->complete_packet_length = delimiters_size + sizeof(uint32_t) + data_length;
+        this->packet_data = malloc(complete_packet_length);
+
+        // Get ready for adding the data to the allocated memory
         this->current_data_ptr = (char *) packet_data;
-        this->current_data_length = 0;
+        this->current_packet_length = 0;
+
         add_data(std::pair<uint32_t, void *>(start_delimiter_size, (void *) start_delimiter));
         add_data(std::pair<uint32_t, void *>(sizeof(uint32_t), &this->data_length));
 
-
+        // ptr currently points to the start of the data section
         this->data = (void *) ptr;
-        if (data.first < this->packet_length) {
-            // We have an incomplete data section
+
+        if (data.first < this->complete_packet_length) {
+            // We have less data than the Stream Packet declares
             uint32_t data_written_so_far = (uint32_t) (ptr - (char *) data.second);
             uint32_t num_bytes_to_copy = data.first - data_written_so_far;
             add_data(std::pair<uint32_t, void *>(num_bytes_to_copy, ptr));
             complete = false;
             return;
-        } else if (data.first >= this->packet_length) {
+        } else if (data.first >= this->complete_packet_length) {
             // We have at least one packet
             add_data(std::pair<uint32_t, void *>(this->data_length, ptr));
             ptr += this->data_length;
@@ -100,17 +112,38 @@ private:
             ptr += this->end_delimiter_size;
 
             // Sanity check
-            if (data.first == this->packet_length && ptr != (char *) data.second + data.first) {
+            if (data.first == this->complete_packet_length && ptr != (char *) data.second + data.first) {
                 std::cout << "Error: Invalid stream packet parsed." << std::endl;
                 invalid = true;
                 return;
             }
             complete = true;
-            if (data.first > this->packet_length) {
+            if (data.first > this->complete_packet_length) {
                 remainder = ptr;
             }
         }
+    }
 
+    void check_if_done() {
+        if (current_packet_length == complete_packet_length) {
+            // Check end delimiter
+            char *ptr = current_data_ptr - end_delimiter_size;
+            if (strncmp(ptr, STREAM_PACKET_END_DELIMITER, end_delimiter_size) == 0) {
+                this->complete = true;
+                return;
+            } else {
+                this->complete = false;
+                this->invalid = true;
+            }
+        } else if (current_packet_length > complete_packet_length) {
+            this->invalid = true;
+            // Something seriously went wrong if this happens.
+            std::cerr << "Too much data was added to a stream packet." << std::endl;
+            exit(-5);
+        } else {
+            this->complete = false;
+            return;
+        }
     }
 
 public:
@@ -118,17 +151,21 @@ public:
     explicit StreamPacket (std::pair<uint32_t, void *> data, bool is_stream_packet) {
         if (is_stream_packet) {
             if (data.first < STREAM_PACKET_MINIMUM_CONSTRUCTION_SIZE ) {
+                // A stream packet must at least be the minimum construction size.
                 invalid = true;
                 return;
             }
-            char *data_ptr = (char *) data.second;
-            bool data_starts_stream_packet = strncmp(start_delimiter, data_ptr, start_delimiter_size) == 0;
 
-            if (data_starts_stream_packet) {
-                unpack_stream_packet(data);
-            } else {
+            // Check that the data starts with the Stream Packet start delimiter
+            bool data_starts_stream_packet = strncmp(start_delimiter, (char *) data.second, start_delimiter_size) == 0;
+
+            if ( ! data_starts_stream_packet) {
                 this->invalid = true;
+                return;
             }
+
+            // It should now be ok to start unpacking the stream packet.
+            unpack_stream_packet(data);
         } else {
             encapsulate_data(data);
         }
@@ -136,16 +173,27 @@ public:
 
     bool add_data(std::pair<uint32_t, void *> data) {
         if (complete) return true;
-        memcpy(current_data_ptr, data.second, data.first);
-        current_data_ptr += data.first;
-        current_data_length += data.first;
+        size_t remaining_bytes = this->complete_packet_length - this->current_packet_length;
+        if (data.first >= remaining_bytes) {
+            memcpy(current_data_ptr, data.second, remaining_bytes);
+            current_data_ptr += remaining_bytes;
+            current_packet_length += remaining_bytes;
+            if (data.first > remaining_bytes) {
+                remainder = (char *) data.second + remaining_bytes;
+            }
+        } else {
+            memcpy(current_data_ptr, data.second, data.first);
+            current_data_ptr += data.first;
+            current_packet_length += data.first;
+        }
+        this->check_if_done();
         return is_complete();
     }
 
     std::pair<uint32_t, void *> get_packet() {
-        void *packet_data_copy = malloc(this->packet_length);
-        memcpy(packet_data_copy, this->packet_data, this->packet_length);
-        return {packet_length, packet_data_copy};
+        void *packet_data_copy = malloc(this->complete_packet_length);
+        memcpy(packet_data_copy, this->packet_data, this->complete_packet_length);
+        return {complete_packet_length, packet_data_copy};
     }
 
     std::pair<uint32_t, void *> get_stream_data() {
