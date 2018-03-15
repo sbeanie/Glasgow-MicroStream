@@ -88,15 +88,27 @@ public:
         }
     }
 
-    void run() {
+    void start() {
         if (peerDiscoverer != nullptr) peerDiscoverer->start();
         for (auto &startable : startables) {
-            (*startable).start();
+            startable->start();
+        }
+    }
+
+    void run() {
+        this->start();
+        for (auto &startable : startables) {
+            startable->join();
         }
     }
 
     void shutdown() {
-
+        for (auto &startable : startables) {
+            startable->stop();
+        }
+        for (auto &startable : startables) {
+            startable->join();
+        }
     }
 
     ~Topology() {

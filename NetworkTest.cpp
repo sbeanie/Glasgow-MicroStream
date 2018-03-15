@@ -80,9 +80,6 @@ int main (int, char**) {
     std::cout << "Running..." << std::endl;
 
     topology->run();
-
-    std::this_thread::sleep_for(std::chrono::seconds(12));
-
     topology->shutdown();
     delete(topology);
     delete(numberSource);

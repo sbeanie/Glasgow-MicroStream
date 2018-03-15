@@ -47,10 +47,14 @@ public:
     PolledSource(std::chrono::duration<double> interval, Pollable<T>* pollable) : interval(interval), pollable(pollable) {};
 
 
-    void start() {
+    void start() override {
         this->should_run = true;
         if (thread.joinable()) thread.join();
         this->thread = std::thread(&PolledSource::poll, this);
+    }
+
+    void join() override {
+        if (thread.joinable()) thread.join();
     }
 
     void stop() {

@@ -20,6 +20,10 @@ public:
             this->publish(*i);
         }
     }
+
+    void stop() override {}
+
+    void join() override {}
 };
 
 #endif //GU_EDGENT_FIXEDDATASOURCE_H

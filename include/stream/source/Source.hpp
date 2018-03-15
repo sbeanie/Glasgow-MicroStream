@@ -8,6 +8,8 @@ class Startable {
 
 public:
     virtual void start() = 0;
+    virtual void stop() = 0;
+    virtual void join() = 0;
 };
 
 template <typename T>
@@ -16,6 +18,8 @@ class Source : public Stream<T>, public Startable {
 public:
 
     virtual void start() = 0;
+    virtual void stop() = 0;
+    virtual void join() = 0;
 };
 
 
