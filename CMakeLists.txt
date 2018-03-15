@@ -12,9 +12,12 @@ include_directories ("${PROJECT_SOURCE_DIR}/include")
 #add_executable(GU-Edgent main.cpp)
 add_executable(GU-Edgent NetworkTest.cpp)
 
-#find_package( Boost 1.66 REQUIRED COMPONENTS optional )
+find_package( Boost 1.66 REQUIRED COMPONENTS serialization )
 #TARGET_LINK_LIBRARIES( GU-Edgent LINK_PUBLIC ${Boost_LIBRARIES} Threads::Threads )
-TARGET_LINK_LIBRARIES( GU-Edgent LINK_PUBLIC Threads::Threads)
+TARGET_LINK_LIBRARIES(GU-Edgent LINK_PUBLIC Threads::Threads)
 
 add_executable(runTests tests/main.cpp)
 TARGET_LINK_LIBRARIES(runTests LINK_PUBLIC Threads::Threads gtest)
+
+add_executable(boostserialize boostserialize.cpp)
+TARGET_LINK_LIBRARIES(boostserialize LINK_PUBLIC Threads::Threads ${Boost_LIBRARIES})

@@ -88,6 +88,23 @@ public:
         }
     }
 
+    template <typename T>
+    boost::optional<BoostSerializedNetworkSource<T>* > addBoostNetworkSource(const char *stream_id) {
+        if (peerDiscoverer == nullptr) {
+            std::cerr << "Cannot add a network source with peer discovery disabled." << std::endl;
+            exit(1);
+        }
+        auto *networkSource = new BoostSerializedNetworkSource<T>();
+        bool added = peerDiscoverer->add_network_source(networkSource, stream_id);
+
+        if (added) {
+            return networkSource;
+        } else {
+            networkSource->delete_and_notify();
+            return boost::optional<BoostSerializedNetworkSource<T>* >();
+        }
+    }
+
     void start() {
         if (peerDiscoverer != nullptr) peerDiscoverer->start();
         for (auto &startable : startables) {

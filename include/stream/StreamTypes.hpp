@@ -44,4 +44,10 @@ class StatefulStream;
 template <typename INPUT, typename OUTPUT>
 class StatefulMap;
 
+template <typename T>
+class NetworkSource;
+
+template <typename T>
+class BoostSerializedNetworkSink;
+
 #endif
