@@ -89,7 +89,7 @@ public:
     }
 
     template <typename T>
-    boost::optional<BoostSerializedNetworkSource<T>* > addBoostNetworkSource(const char *stream_id) {
+    boost::optional<BoostSerializedNetworkSource<T>* > addBoostSerializedNetworkSource(const char *stream_id) {
         if (peerDiscoverer == nullptr) {
             std::cerr << "Cannot add a network source with peer discovery disabled." << std::endl;
             exit(1);
@@ -103,6 +103,11 @@ public:
             networkSource->delete_and_notify();
             return boost::optional<BoostSerializedNetworkSource<T>* >();
         }
+    }
+
+    bool peers_connected() {
+        if (this->peerDiscoverer == nullptr) return false;
+        return this->peerDiscoverer->check_connected();
     }
 
     void start() {

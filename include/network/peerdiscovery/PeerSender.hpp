@@ -46,6 +46,11 @@ private:
 
 public:
 
+    bool has_connections() {
+        std::lock_guard<std::recursive_mutex> lock(subscriber_sockets_lock);
+        return subscriber_sockets.size() > 0;
+    }
+
     uint16_t get_tcp_port() {
         return tcp_port;
     }

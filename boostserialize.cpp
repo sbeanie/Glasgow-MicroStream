@@ -47,21 +47,25 @@ int main(int, char **) {
 
     std::list<gps_location> vals = {a,b,c};
     Stream<gps_location> *vals_stream = topology->addFixedDataSource(vals);
+    vals_stream->boostSerializedNetworkSink(topology, "boostserialized");
+
 
     auto print_sink = [](gps_location val) {
         std::cout << "Received gps_location: " << val.get_degrees() << ", " << val.get_minutes() << ", " << val.get_seconds()
                   << " over the network." << std::endl;
     };
 
-    vals_stream->boostSerializedNetworkSink(topology, "test");
-
-    auto optNetworkSource = topology->addBoostNetworkSource<gps_location>("test");
+    auto optNetworkSource = topology->addBoostSerializedNetworkSource<gps_location>("boostserialized");
     if (optNetworkSource.is_initialized()) {
         NetworkSource<gps_location> *gps_stream = optNetworkSource.get();
         gps_stream->sink(print_sink);
     }
 
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    // Wait for all of our streams to connect.
+    while ( ! topology->peers_connected()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
 
     topology->run();
     topology->shutdown();

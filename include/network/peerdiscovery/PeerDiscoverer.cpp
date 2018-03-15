@@ -323,3 +323,19 @@ void PeerDiscoverer::send_peer_discovery_query(const char *stream_id) {
     free(packet_data.second);
     delete(peerDiscoveryQueryPacket);
 }
+
+bool PeerDiscoverer::check_connected() {
+    {
+        std::recursive_mutex search_lock;
+        for (auto &kv : stream_ids_to_search_for) {
+            if (kv.second.second.size() <= 0) return false;
+        }
+    }
+    {
+        std::recursive_mutex publish_lock;
+        for (auto &kv : stream_ids_to_publish) {
+            if ( ! kv.second->has_connections()) return false;
+        }
+    }
+    return true;
+}

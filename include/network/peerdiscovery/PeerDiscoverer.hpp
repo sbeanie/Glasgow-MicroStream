@@ -65,6 +65,8 @@ private:
 
 public:
 
+    bool check_connected();
+
     template <typename T>
     bool add_network_source(NetworkSource<T> *networkSource, const char *stream_id);
 
