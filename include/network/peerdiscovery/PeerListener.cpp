@@ -118,5 +118,8 @@ namespace NAMESPACE_NAME {
                 free(data);
             }
         }
+        if (streamPacket != nullptr) {
+            delete(streamPacket);
+        }
     }
 }
