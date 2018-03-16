@@ -30,6 +30,9 @@ public:
 };
 
 #include "NetworkSink.hpp"
+
+#ifdef COMPILE_WITH_BOOST
 #include "BoostSerializedNetworkSink.hpp"
+#endif
 
 #endif

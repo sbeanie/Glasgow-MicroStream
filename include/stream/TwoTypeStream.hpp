@@ -173,11 +173,13 @@ public:
         return networkSink;
     }
 
+#ifdef COMPILE_WITH_BOOST
     NetworkSink<OUTPUT>* boostSerializedNetworkSink(Topology *topology, const char *stream_id) {
         auto *networkSink = new BoostSerializedNetworkSink<OUTPUT>(topology, stream_id);
         this->subscribe(networkSink);
         return networkSink;
     }
+#endif
 
     virtual ~TwoTypeStream() {}
 };

@@ -23,7 +23,7 @@ public:
             iar >> (val);
 
             iar.delete_created_pointers();
-            return boost::optional<T>(val);
+            return Optional<T>(val);
         };
     }
 };

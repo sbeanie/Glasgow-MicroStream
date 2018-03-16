@@ -16,16 +16,16 @@ class NetworkSource : public TwoTypeStream<std::pair<uint32_t, void*>, T>, publi
 
 protected:
 
-    boost::optional<T> (*deserialize_func) (std::pair<uint32_t, void *>) = nullptr;
+    Optional<T> (*deserialize_func) (std::pair<uint32_t, void *>) = nullptr;
 
 public:
 
     NetworkSource() = default;
-    explicit NetworkSource(boost::optional<T> (*deserialize_func) (std::pair<uint32_t, void *>)) : deserialize_func(deserialize_func) {};
+    explicit NetworkSource(Optional<T> (*deserialize_func) (std::pair<uint32_t, void *>)) : deserialize_func(deserialize_func) {};
 
     void receive(std::pair<uint32_t, void*> data) override {
         if (deserialize_func == nullptr) return;
-        boost::optional<T> optionalValue = deserialize_func(data);
+        Optional<T> optionalValue = deserialize_func(data);
         if (optionalValue.is_initialized()) {
             this->publish(optionalValue.value());
         }

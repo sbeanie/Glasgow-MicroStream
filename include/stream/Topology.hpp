@@ -2,7 +2,6 @@
 #define GU_EDGENT_TOPOLOGY_H
 
 #include <unordered_map>
-#include <boost/optional.hpp>
 #include "StreamTypes.hpp"
 
 #include "../network/peerdiscovery/PeerDiscoverer.hpp"
@@ -72,7 +71,7 @@ public:
     }
 
     template <typename T>
-    boost::optional<NetworkSource<T>* > addNetworkSource(const char *stream_id, boost::optional<T> (*deserialize_func) (std::pair<uint32_t, void *>)) {
+    Optional<NetworkSource<T>* > addNetworkSource(const char *stream_id, Optional<T> (*deserialize_func) (std::pair<uint32_t, void *>)) {
         if (peerDiscoverer == nullptr) {
             std::cerr << "Cannot add a network source with peer discovery disabled." << std::endl;
             exit(1);
@@ -81,15 +80,16 @@ public:
         bool added = peerDiscoverer->add_network_source(networkSource, stream_id);
 
         if (added) {
-            return networkSource;
+            return Optional<NetworkSource<T>* >(networkSource);
         } else {
             networkSource->delete_and_notify();
-            return boost::optional<NetworkSource<T>* >();
+            return Optional<NetworkSource<T>* >();
         }
     }
 
+#ifdef COMPILE_WITH_BOOST
     template <typename T>
-    boost::optional<BoostSerializedNetworkSource<T>* > addBoostSerializedNetworkSource(const char *stream_id) {
+    Optional<BoostSerializedNetworkSource<T>* > addBoostSerializedNetworkSource(const char *stream_id) {
         if (peerDiscoverer == nullptr) {
             std::cerr << "Cannot add a network source with peer discovery disabled." << std::endl;
             exit(1);
@@ -98,12 +98,13 @@ public:
         bool added = peerDiscoverer->add_network_source(networkSource, stream_id);
 
         if (added) {
-            return networkSource;
+            return Optional<BoostSerializedNetworkSource<T> *>(networkSource);
         } else {
             networkSource->delete_and_notify();
-            return boost::optional<BoostSerializedNetworkSource<T>* >();
+            return Optional<BoostSerializedNetworkSource<T>* >();
         }
     }
+#endif
 
     bool peers_connected() {
         if (this->peerDiscoverer == nullptr) return false;

@@ -57,7 +57,7 @@ int main(int, char **) {
 
     auto optNetworkSource = topology->addBoostSerializedNetworkSource<gps_location>("boostserialized");
     if (optNetworkSource.is_initialized()) {
-        NetworkSource<gps_location> *gps_stream = optNetworkSource.get();
+        NetworkSource<gps_location> *gps_stream = optNetworkSource.value();
         gps_stream->sink(print_sink);
     }
 

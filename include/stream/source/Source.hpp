@@ -26,6 +26,9 @@ public:
 #include "FixedDataSource.hpp"
 #include "PolledSource.hpp"
 #include "NetworkSource.hpp"
+
+#ifdef COMPILE_WITH_BOOST
 #include "BoostSerializedNetworkSource.hpp"
+#endif
 
 #endif //GU_EDGENT_SOURCE_H

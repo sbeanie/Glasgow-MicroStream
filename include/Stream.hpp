@@ -1,6 +1,8 @@
 #ifndef _STREAM_H_
 #define _STREAM_H_
 
+#include "util/optional.hpp"
+
 #include "stream/StreamTypes.hpp"
 
 #include "stream/TwoTypeStream.hpp"

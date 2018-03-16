@@ -47,7 +47,9 @@ class StatefulMap;
 template <typename T>
 class NetworkSource;
 
+#ifdef COMPILE_WITH_BOOST
 template <typename T>
 class BoostSerializedNetworkSink;
+#endif
 
 #endif
