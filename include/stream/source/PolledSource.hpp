@@ -4,68 +4,73 @@
 #include <iostream>
 #include "../StreamTypes.hpp"
 
-template <typename T>
-class PolledSource;
+namespace NAMESPACE_NAME {
 
-template <typename T>
-class Pollable {
+    template<typename T>
+    class PolledSource;
 
-public:
-    virtual T getData(PolledSource<T>* caller) = 0;
-};
+    template<typename T>
+    class Pollable {
+
+    public:
+        virtual T getData(PolledSource<T> *caller) = 0;
+    };
 
 
-template <typename T>
-class PolledSource : public Source<T> {
+    template<typename T>
+    class PolledSource : public Source<T> {
 
-    std::chrono::duration<double> interval;
+        std::chrono::duration<double> interval;
 
-    std::thread thread;
+        std::thread thread;
 
-    Pollable<T>* pollable;
+        Pollable<T> *pollable;
 
-private:
+    private:
 
-    void poll() {
-        while (should_run) {
-            T val = this->pollable->getData(this);
+        void poll() {
+            while (should_run) {
+                T val = this->pollable->getData(this);
 
-            // If the getData function requests the thread to stop we should not publish the result.
-            if ( ! this->should_run) break;
+                // If the getData function requests the thread to stop we should not publish the result.
+                if (!this->should_run) break;
 
-            this->publish(val);
-            std::this_thread::sleep_for(interval);
+                this->publish(val);
+                std::this_thread::sleep_for(interval);
+            }
         }
-    }
 
-protected:
+    protected:
 
-    bool should_run = false;
+        bool should_run = false;
 
-public:
+    public:
 
-    PolledSource(std::chrono::duration<double> interval, Pollable<T>* pollable) : interval(interval), pollable(pollable) {};
+        PolledSource(std::chrono::duration<double> interval, Pollable<T> *pollable) : interval(interval),
+                                                                                      pollable(pollable) {};
 
 
-    void start() override {
-        this->should_run = true;
-        if (thread.joinable()) thread.join();
-        this->thread = std::thread(&PolledSource::poll, this);
-    }
+        void start() override {
+            this->should_run = true;
+            if (thread.joinable()) thread.join();
+            this->thread = std::thread(&PolledSource::poll, this);
+        }
 
-    void join() override {
-        if (thread.joinable()) thread.join();
-    }
+        void join() override {
+            if (thread.joinable()) thread.join();
+        }
 
-    void stop() {
-        this->should_run = false;
-    }
+        void stop() {
+            this->should_run = false;
+        }
 
-    ~PolledSource() {
-        this->should_run = false;
-        if (thread.joinable()) thread.join();
-        // Do not delete the pollable as it might be desirable to have two PolledSources polling the same pollable.
-    }
-};
+        ~PolledSource() {
+            this->should_run = false;
+            if (thread.joinable()) thread.join();
+            // Do not delete the pollable as it might be desirable to have two PolledSources polling the same pollable.
+        }
+    };
+
+}
 
 #endif //GU_EDGENT_POLLEDSOURCE_H

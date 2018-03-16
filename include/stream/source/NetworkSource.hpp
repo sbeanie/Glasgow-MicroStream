@@ -4,32 +4,37 @@
 #include "../StreamTypes.hpp"
 #include <boost/optional.hpp>
 
-class StreamPacketDataReceiver {
+namespace NAMESPACE_NAME {
 
-public:
-    virtual void receive(std::pair<uint32_t, void*> data) = 0;
-};
+    class StreamPacketDataReceiver {
 
-template <typename T>
-class NetworkSource : public TwoTypeStream<std::pair<uint32_t, void*>, T>, public StreamPacketDataReceiver {
+    public:
+        virtual void receive(std::pair<uint32_t, void *> data) = 0;
+    };
+
+    template<typename T>
+    class NetworkSource : public TwoTypeStream<std::pair<uint32_t, void *>, T>, public StreamPacketDataReceiver {
 
 
-protected:
+    protected:
 
-    Optional<T> (*deserialize_func) (std::pair<uint32_t, void *>) = nullptr;
+        optional<T> (*deserialize_func)(std::pair<uint32_t, void *>) = nullptr;
 
-public:
+    public:
 
-    NetworkSource() = default;
-    explicit NetworkSource(Optional<T> (*deserialize_func) (std::pair<uint32_t, void *>)) : deserialize_func(deserialize_func) {};
+        NetworkSource() = default;
 
-    void receive(std::pair<uint32_t, void*> data) override {
-        if (deserialize_func == nullptr) return;
-        Optional<T> optionalValue = deserialize_func(data);
-        if (optionalValue.is_initialized()) {
-            this->publish(optionalValue.value());
+        explicit NetworkSource(optional<T> (*deserialize_func)(std::pair<uint32_t, void *>)) : deserialize_func(
+                deserialize_func) {};
+
+        void receive(std::pair<uint32_t, void *> data) override {
+            if (deserialize_func == nullptr) return;
+            optional<T> optionalValue = deserialize_func(data);
+            if (optionalValue.is_initialized()) {
+                this->publish(optionalValue.value());
+            }
         }
-    }
-};
+    };
+}
 
 #endif //GU_EDGENT_NETWORKSOURCE_H

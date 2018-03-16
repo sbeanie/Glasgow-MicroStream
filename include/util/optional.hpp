@@ -1,29 +1,32 @@
 #ifndef GU_EDGENT_OPTIONAL_HPP
 #define GU_EDGENT_OPTIONAL_HPP
 
-template <typename T>
-class Optional {
+namespace NAMESPACE_NAME {
 
-    bool initialized = false;
-    T optional_value;
+    template<typename T>
+    class optional {
 
-public:
-    Optional() {
-        initialized = false;
-    }
+        bool initialized = false;
+        T optional_value;
 
-    Optional(T val) {
-        optional_value = val;
-        initialized = true;
-    }
+    public:
+        optional() {
+            initialized = false;
+        }
 
-    bool is_initialized() {
-        return initialized;
-    }
+        explicit optional(T val) {
+            optional_value = val;
+            initialized = true;
+        }
 
-    T value() {
-        return optional_value;
-    }
-};
+        bool is_initialized() {
+            return initialized;
+        }
+
+        T value() {
+            return optional_value;
+        }
+    };
+}
 
 #endif //GU_EDGENT_OPTIONAL_HPP

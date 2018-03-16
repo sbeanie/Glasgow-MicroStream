@@ -8,75 +8,77 @@
 
 #include "PeerDiscoveryPacketTypes.hpp"
 
-class PeerDiscoveryQueryPacket {
-    uint8_t packet_type = PEER_DISCOVERY_QUERY_PACKET_TYPE;
-    uint32_t stream_id_length;
-    const char *stream_id;
+namespace NAMESPACE_NAME {
 
-    bool valid = false;
+    class PeerDiscoveryQueryPacket {
+        uint8_t packet_type = PEER_DISCOVERY_QUERY_PACKET_TYPE;
+        uint32_t stream_id_length;
+        const char *stream_id;
 
-    char *data_ptr = nullptr;
+        bool valid = false;
 
-    uint32_t min_packet_size = sizeof(uint8_t) + sizeof(uint32_t) + 1;
+        char *data_ptr = nullptr;
 
-public:
+        uint32_t min_packet_size = sizeof(uint8_t) + sizeof(uint32_t) + 1;
 
-    explicit PeerDiscoveryQueryPacket(std::pair<uint32_t, void*> data) {
-        uint32_t data_length = data.first;
-        if (data_length < min_packet_size) {
-            std::cerr << "Minimum query packet length not met.  Discarding..." << std::endl;
-            return;
+    public:
+
+        explicit PeerDiscoveryQueryPacket(std::pair<uint32_t, void *> data) {
+            uint32_t data_length = data.first;
+            if (data_length < min_packet_size) {
+                std::cerr << "Minimum query packet length not met.  Discarding..." << std::endl;
+                return;
+            }
+
+            this->data_ptr = (char *) data.second;
+            auto ptr = this->data_ptr;
+
+            packet_type = *((uint8_t *) ptr);
+            if (packet_type != PEER_DISCOVERY_QUERY_PACKET_TYPE) {
+                std::cerr << "Data provided to parse is not a query packet. Discarding..." << std::endl;
+                return;
+            }
+            ptr += sizeof(uint8_t);
+
+            stream_id_length = *((uint32_t *) ptr);
+            if (data_length - sizeof(uint8_t) - sizeof(uint32_t) != stream_id_length) {
+                std::cerr << "Malformed query packet.  Discarding..." << std::endl;
+                return;
+            }
+            ptr += sizeof(uint32_t);
+
+            stream_id = ptr;
+            valid = true;
         }
 
-        this->data_ptr = (char *) data.second;
-        auto ptr = this->data_ptr;
-
-        packet_type = *((uint8_t *) ptr);
-        if (packet_type != PEER_DISCOVERY_QUERY_PACKET_TYPE) {
-            std::cerr << "Data provided to parse is not a query packet. Discarding..." << std::endl;
-            return;
+        const char *get_stream_id() {
+            return stream_id;
         }
-        ptr += sizeof(uint8_t);
 
-        stream_id_length = *((uint32_t *) ptr);
-        if (data_length - sizeof(uint8_t) - sizeof(uint32_t) != stream_id_length) {
-            std::cerr << "Malformed query packet.  Discarding..." << std::endl;
-            return;
+        bool is_valid() {
+            return valid;
         }
-        ptr += sizeof(uint32_t);
 
-        stream_id = ptr;
-        valid = true;
-    }
+        std::pair<size_t, void *> get_packet_data() {
+            uint32_t packet_size = sizeof(uint8_t) + sizeof(uint32_t) + stream_id_length;
+            auto *packet = (char *) malloc(packet_size);
+            char *ptr = packet;
 
-    const char *get_stream_id() {
-        return stream_id;
-    }
+            *((uint8_t *) ptr) = packet_type;
+            ptr += sizeof(uint8_t);
 
-    bool is_valid() {
-        return valid;
-    }
+            *((uint32_t *) ptr) = stream_id_length;
+            ptr += sizeof(uint32_t);
 
-    std::pair<size_t, void*> get_packet_data() {
-        uint32_t packet_size = sizeof(uint8_t) + sizeof(uint32_t) + stream_id_length;
-        auto *packet = (char *) malloc(packet_size);
-        char *ptr = packet;
+            memcpy(ptr, stream_id, stream_id_length);
 
-        *((uint8_t *) ptr) = packet_type;
-        ptr += sizeof(uint8_t);
+            return {packet_size, packet};
+        }
 
-        *((uint32_t *) ptr) = stream_id_length;
-        ptr += sizeof(uint32_t);
-
-        memcpy(ptr, stream_id, stream_id_length);
-
-        return {packet_size, packet};
-    }
-
-    PeerDiscoveryQueryPacket(const char *stream_id) : stream_id(stream_id) {
-        stream_id_length = (uint32_t) strlen(stream_id) + 1; // + 1 for \0
-        valid = true;
-    }
-};
-
+        PeerDiscoveryQueryPacket(const char *stream_id) : stream_id(stream_id) {
+            stream_id_length = (uint32_t) strlen(stream_id) + 1; // + 1 for \0
+            valid = true;
+        }
+    };
+}
 #endif //GU_EDGENT_PEERDISCOVERYQUERYPACKET_HPP

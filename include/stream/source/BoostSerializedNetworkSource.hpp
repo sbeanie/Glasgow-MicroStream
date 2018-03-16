@@ -6,27 +6,30 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/iostreams/stream.hpp>
 
-template <typename T>
-class BoostSerializedNetworkSource : public NetworkSource<T> {
+namespace NAMESPACE_NAME {
 
-private:
+    template<typename T>
+    class BoostSerializedNetworkSource : public NetworkSource<T> {
 
-public:
-    BoostSerializedNetworkSource() : NetworkSource<T>() {
-        this->deserialize_func = [] (std::pair<uint32_t, void *> data) {
-            boost::iostreams::basic_array_source<char> source((char *) data.second, data.first);
-            boost::iostreams::stream<boost::iostreams::basic_array_source<char> > stream(source);
-            boost::archive::binary_iarchive iar(stream);
+    private:
 
-            T val;
+    public:
+        BoostSerializedNetworkSource() : NetworkSource<T>() {
+            this->deserialize_func = [](std::pair<uint32_t, void *> data) {
+                boost::iostreams::basic_array_source<char> source((char *) data.second, data.first);
+                boost::iostreams::stream<boost::iostreams::basic_array_source<char> > stream(source);
+                boost::archive::binary_iarchive iar(stream);
 
-            iar >> (val);
+                T val;
 
-            iar.delete_created_pointers();
-            return Optional<T>(val);
-        };
-    }
-};
+                iar >> (val);
+
+                iar.delete_created_pointers();
+                return optional<T>(val);
+            };
+        }
+    };
+}
 
 
 #endif //GU_EDGENT_BOOSTDESERIALIZEDNETWORKSOURCE_HPP

@@ -3,47 +3,51 @@
 
 #include "../StreamTypes.hpp"
 
-template <typename T>
-class NetworkSink : public Subscriber<T> {
+namespace NAMESPACE_NAME {
 
-private:
+    template<typename T>
+    class NetworkSink : public Subscriber<T> {
 
-    Topology *topology;
-    const char *stream_id;
+    private:
 
-protected:
-    std::pair<uint32_t, void*> (*val_to_bytes) (T) = nullptr;
+        Topology *topology;
+        const char *stream_id;
 
-public:
+    protected:
+        std::pair<uint32_t, void *> (*val_to_bytes)(T) = nullptr;
 
-    NetworkSink(Topology *topology, const char *stream_id) : topology(topology), stream_id(stream_id) {
-        topology->addNetworkSink(stream_id);
-    }
+    public:
 
-    NetworkSink(Topology *topology, const char *stream_id, std::pair<uint32_t, void*> (*val_to_bytes) (T)) :
-            topology(topology), stream_id(stream_id), val_to_bytes(val_to_bytes) {
-        topology->addNetworkSink(stream_id);
-    }
+        NetworkSink(Topology *topology, const char *stream_id) : topology(topology), stream_id(stream_id) {
+            topology->addNetworkSink(stream_id);
+        }
 
-    void receive(T val) {
-        if (val_to_bytes == nullptr) return;
-        std::pair<uint32_t, void*> data = val_to_bytes(val);
-        topology->send_network_data(stream_id, data);
-        free(data.second);
-    }
+        NetworkSink(Topology *topology, const char *stream_id, std::pair<uint32_t, void *> (*val_to_bytes)(T)) :
+                topology(topology), stream_id(stream_id), val_to_bytes(val_to_bytes) {
+            topology->addNetworkSink(stream_id);
+        }
 
-    void notify_subscribeable_deleted(Subscribeable<T> *) override {
-        delete_and_notify();
+        void receive(T val) {
+            if (val_to_bytes == nullptr) return;
+            std::pair<uint32_t, void *> data = val_to_bytes(val);
+            topology->send_network_data(stream_id, data);
+            free(data.second);
+        }
+
+        void notify_subscribeable_deleted(Subscribeable<T> *) override {
+            delete_and_notify();
+        };
+
+        void add_subscribeable(Subscribeable<T> *) override {};
+
+        bool delete_and_notify() override {
+            delete (this);
+            return true;
+        }
+
+        virtual ~NetworkSink() = default;
     };
 
-    void add_subscribeable(Subscribeable<T> *) override {};
-
-    bool delete_and_notify() override {
-        delete(this);
-        return true;
-    }
-
-    virtual ~NetworkSink() = default;
-};
+}
 
 #endif //GU_EDGENT_NETWORKSINK_H

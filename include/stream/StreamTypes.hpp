@@ -1,55 +1,58 @@
 #ifndef _STREAM_TYPES_H_
 #define _STREAM_TYPES_H_
 
-class Topology;
+namespace NAMESPACE_NAME {
 
-template <typename T>
-class Sink;
+    class Topology;
 
-template <typename INPUT, typename OUTPUT>
-class TwoTypeStream;
+    template<typename T>
+    class Sink;
 
-template <typename T>
-class Stream: public TwoTypeStream<T, T> {
-public:
-    virtual void receive(T value) {
-        this->publish(value);
-    }
-};
+    template<typename INPUT, typename OUTPUT>
+    class TwoTypeStream;
 
-template <typename T>
-class FilterStream;
+    template<typename T>
+    class Stream : public TwoTypeStream<T, T> {
+    public:
+        virtual void receive(T value) {
+            this->publish(value);
+        }
+    };
 
-template <typename T>
-class Window;
+    template<typename T>
+    class FilterStream;
 
-template <typename INPUT, typename OUTPUT>
-class MapStream;
+    template<typename T>
+    class Window;
 
-template <typename INPUT, typename OUTPUT>
-class WindowAggregate;
+    template<typename INPUT, typename OUTPUT>
+    class MapStream;
 
-template <typename INPUT, typename OUTPUT>
-class WindowBatch;
+    template<typename INPUT, typename OUTPUT>
+    class WindowAggregate;
 
-template <typename T>
-class SplitStream;
+    template<typename INPUT, typename OUTPUT>
+    class WindowBatch;
 
-template <typename T>
-class NetworkSink;
+    template<typename T>
+    class SplitStream;
 
-template <typename INPUT, typename OUTPUT>
-class StatefulStream;
+    template<typename T>
+    class NetworkSink;
 
-template <typename INPUT, typename OUTPUT>
-class StatefulMap;
+    template<typename INPUT, typename OUTPUT>
+    class StatefulStream;
 
-template <typename T>
-class NetworkSource;
+    template<typename INPUT, typename OUTPUT>
+    class StatefulMap;
+
+    template<typename T>
+    class NetworkSource;
 
 #ifdef COMPILE_WITH_BOOST
-template <typename T>
-class BoostSerializedNetworkSink;
+    template <typename T>
+    class BoostSerializedNetworkSink;
 #endif
+}
 
 #endif

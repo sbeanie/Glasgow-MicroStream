@@ -4,27 +4,30 @@
 #include "StreamTypes.hpp"
 #include "Subscriber.hpp"
 
-template <typename INPUT, typename OUTPUT>
-class StatefulMap {
-public:
-    virtual OUTPUT apply_stateful_map(INPUT) = 0;
-};
+namespace NAMESPACE_NAME {
 
-template <typename INPUT, typename OUTPUT>
-class StatefulStream : public TwoTypeStream<INPUT, OUTPUT> {
+    template<typename INPUT, typename OUTPUT>
+    class StatefulMap {
+    public:
+        virtual OUTPUT apply_stateful_map(INPUT) = 0;
+    };
 
-private:
+    template<typename INPUT, typename OUTPUT>
+    class StatefulStream : public TwoTypeStream<INPUT, OUTPUT> {
 
-    StatefulMap<INPUT, OUTPUT> *statefulMap;
+    private:
 
-public:
+        StatefulMap<INPUT, OUTPUT> *statefulMap;
 
-    StatefulStream(StatefulMap<INPUT, OUTPUT> *statefulMap) : statefulMap(statefulMap) {
-    }
+    public:
 
-    virtual void receive(INPUT value) {
-        this->publish(statefulMap->apply_stateful_map(value));
-    }
-};
+        StatefulStream(StatefulMap<INPUT, OUTPUT> *statefulMap) : statefulMap(statefulMap) {
+        }
 
+        virtual void receive(INPUT value) {
+            this->publish(statefulMap->apply_stateful_map(value));
+        }
+    };
+
+}
 #endif //GU_EDGENT_STATEFULSTREAM_HPP

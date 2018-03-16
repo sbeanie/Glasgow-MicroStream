@@ -5,20 +5,22 @@
 #define PEER_DISCOVERY_QUERY_PACKET_TYPE 1
 #define PEER_DISCOVERY_REPLY_PACKET_TYPE 2
 
+namespace NAMESPACE_NAME {
 
-class PeerDiscoveryPacket {
+    class PeerDiscoveryPacket {
 
-public:
+    public:
 
-    static uint8_t get_packet_type(void *data) {
-        uint8_t packet_type = *((uint8_t *) data);
-        if (packet_type >= PEER_DISCOVERY_QUERY_PACKET_TYPE && packet_type <= PEER_DISCOVERY_REPLY_PACKET_TYPE) {
-            return packet_type;
-        } else {
-            return PEER_DISCOVERY_UNKNOWN_PACKET_TYPE;
+        static uint8_t get_packet_type(void *data) {
+            uint8_t packet_type = *((uint8_t *) data);
+            if (packet_type >= PEER_DISCOVERY_QUERY_PACKET_TYPE && packet_type <= PEER_DISCOVERY_REPLY_PACKET_TYPE) {
+                return packet_type;
+            } else {
+                return PEER_DISCOVERY_UNKNOWN_PACKET_TYPE;
+            }
         }
-    }
-};
+    };
+}
 
 #include "PeerDiscoveryReplyPacket.hpp"
 #include "PeerDiscoveryQueryPacket.hpp"

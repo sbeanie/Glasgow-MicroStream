@@ -7,32 +7,37 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 
-template <typename T>
-class BoostSerializedNetworkSink : public NetworkSink<T> {
+namespace NAMESPACE_NAME {
 
-public:
+    template<typename T>
+    class BoostSerializedNetworkSink : public NetworkSink<T> {
 
-    BoostSerializedNetworkSink(Topology *topology, const char *stream_id) : NetworkSink<T>(topology, stream_id) {
-        this->val_to_bytes = [] (T val) {
-            std::string serial_str;
-            boost::iostreams::back_insert_device<std::string> inserter(serial_str);
-            boost::iostreams::stream<boost::iostreams::back_insert_device<std::string> > s(inserter);
+    public:
 
-            boost::archive::binary_oarchive oa(s);
-            oa << val;
+        BoostSerializedNetworkSink(Topology *topology, const char *stream_id) : NetworkSink<T>(topology, stream_id) {
+            this->val_to_bytes = [](T val) {
+                std::string serial_str;
+                boost::iostreams::back_insert_device<std::string> inserter(serial_str);
+                boost::iostreams::stream<boost::iostreams::back_insert_device<std::string> > s(inserter);
 
-            s.flush();
+                boost::archive::binary_oarchive oa(s);
+                oa << val;
 
-            const char *str = serial_str.c_str();
-            size_t bytes_written = serial_str.size();
+                s.flush();
 
-            void *data = malloc(bytes_written);
-            memcpy(data, str, bytes_written);
+                const char *str = serial_str.c_str();
+                size_t bytes_written = serial_str.size();
 
-            return std::pair<uint32_t, void*>(bytes_written, data);
-        };
-    }
+                void *data = malloc(bytes_written);
+                memcpy(data, str, bytes_written);
 
-    virtual ~BoostSerializedNetworkSink() = default;
-};
+                return std::pair<uint32_t, void *>(bytes_written, data);
+            };
+        }
+
+        virtual ~BoostSerializedNetworkSink() = default;
+    };
+
+}
+
 #endif //GU_EDGENT_BOOSTSERIALIZEDNETWORKSINK_HPP

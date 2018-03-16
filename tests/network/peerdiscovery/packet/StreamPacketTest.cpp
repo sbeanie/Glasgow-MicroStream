@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 #include "Stream.hpp"
 
+using namespace glasgow_ustream;
+
 class StreamPacketTest : public ::testing::Test {
 protected:
     uint32_t delimiters_size = (uint32_t) (strlen(STREAM_PACKET_START_DELIMITER) + strlen(STREAM_PACKET_END_DELIMITER) + 2);

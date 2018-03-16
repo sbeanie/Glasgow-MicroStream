@@ -3,31 +3,35 @@
 
 #include "../Subscriber.hpp"
 
-template <typename T>
-class Sink : public Subscriber<T> {
-    
-    void (*sink_function)(T);
+namespace NAMESPACE_NAME {
 
-public:
-    Sink(void (*sink_function)(T)) : sink_function(sink_function) {};
+    template<typename T>
+    class Sink : public Subscriber<T> {
 
-    void notify_subscribeable_deleted(Subscribeable<T> *) override {
-        delete_and_notify();
+        void (*sink_function)(T);
+
+    public:
+        Sink(void (*sink_function)(T)) : sink_function(sink_function) {};
+
+        void notify_subscribeable_deleted(Subscribeable<T> *) override {
+            delete_and_notify();
+        };
+
+        void add_subscribeable(Subscribeable<T> *) override {};
+
+        bool delete_and_notify() override {
+            delete (this);
+            return true;
+        }
+
+        void receive(T value) override {
+            sink_function(value);
+        }
+
+        virtual ~Sink() {}
     };
 
-    void add_subscribeable(Subscribeable<T> *) override {};
-
-    bool delete_and_notify() override {
-        delete(this);
-        return true;
-    }
-
-    void receive(T value) override {
-            sink_function(value);
-    }
-
-    virtual ~Sink() {}
-};
+}
 
 #include "NetworkSink.hpp"
 

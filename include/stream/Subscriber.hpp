@@ -3,22 +3,27 @@
 
 #include "Subscribeable.hpp"
 
-template <typename T>
-class Subscribeable;
+namespace NAMESPACE_NAME {
 
-class CascadeDeleteable {
+    template<typename T>
+    class Subscribeable;
 
-public:
-    virtual bool delete_and_notify() = 0;
-};
+    class CascadeDeleteable {
 
-template <typename T>
-class Subscriber : public CascadeDeleteable {
+    public:
+        virtual bool delete_and_notify() = 0;
+    };
 
-public:
-    virtual void receive(T) = 0;
+    template<typename T>
+    class Subscriber : public CascadeDeleteable {
+
+    public:
+        virtual void receive(T) = 0;
+
 //    virtual void notify_subscribeable_deleted(Subscribeable<T>*) {std::cout << "Default called" << std::endl;}
-    virtual void notify_subscribeable_deleted(Subscribeable<T>*) = 0;
-    virtual void add_subscribeable(Subscribeable<T>*) = 0;
-};
+        virtual void notify_subscribeable_deleted(Subscribeable<T> *) = 0;
+
+        virtual void add_subscribeable(Subscribeable<T> *) = 0;
+    };
+}
 #endif

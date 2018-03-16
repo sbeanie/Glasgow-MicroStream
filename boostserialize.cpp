@@ -39,14 +39,14 @@ public:
 
 
 int main(int, char **) {
-    Topology *topology = new Topology();
+    auto *topology = new glasgow_ustream::Topology();
 
     const gps_location a(35, 59, 24.567f);
     const gps_location b(36, 60, 24.567f);
     const gps_location c(37, 61, 24.567f);
 
     std::list<gps_location> vals = {a,b,c};
-    Stream<gps_location> *vals_stream = topology->addFixedDataSource(vals);
+    glasgow_ustream::Stream<gps_location> *vals_stream = topology->addFixedDataSource(vals);
     vals_stream->boostSerializedNetworkSink(topology, "boostserialized");
 
 
@@ -57,7 +57,7 @@ int main(int, char **) {
 
     auto optNetworkSource = topology->addBoostSerializedNetworkSource<gps_location>("boostserialized");
     if (optNetworkSource.is_initialized()) {
-        NetworkSource<gps_location> *gps_stream = optNetworkSource.value();
+        glasgow_ustream::NetworkSource<gps_location> *gps_stream = optNetworkSource.value();
         gps_stream->sink(print_sink);
     }
 

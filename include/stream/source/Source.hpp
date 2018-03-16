@@ -3,25 +3,31 @@
 
 #include "../StreamTypes.hpp"
 
+namespace NAMESPACE_NAME {
 
-class Startable {
+    class Startable {
 
-public:
-    virtual void start() = 0;
-    virtual void stop() = 0;
-    virtual void join() = 0;
-};
+    public:
+        virtual void start() = 0;
 
-template <typename T>
-class Source : public Stream<T>, public Startable {
+        virtual void stop() = 0;
 
-public:
+        virtual void join() = 0;
+    };
 
-    virtual void start() = 0;
-    virtual void stop() = 0;
-    virtual void join() = 0;
-};
+    template<typename T>
+    class Source : public Stream<T>, public Startable {
 
+    public:
+
+        virtual void start() = 0;
+
+        virtual void stop() = 0;
+
+        virtual void join() = 0;
+    };
+
+}
 
 #include "FixedDataSource.hpp"
 #include "PolledSource.hpp"
