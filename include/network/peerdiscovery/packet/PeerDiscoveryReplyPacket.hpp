@@ -11,17 +11,19 @@
 namespace NAMESPACE_NAME {
 
     class PeerDiscoveryReplyPacket {
+        // Minimum packet size should be size of packet type, size of port number, sizeof stream_id_length, + 1 for minimum stream_id_size
+        static size_t min_packet_size = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t) + 1;
+
+        // Format of a reply packet
         uint8_t packet_type = PEER_DISCOVERY_REPLY_PACKET_TYPE;
         uint16_t port_number;
         uint32_t stream_id_length;
         const char *stream_id;
+        // End Format
 
         bool valid = false;
 
         char *data_ptr = nullptr;
-
-        // Minimum packet size should be size of packet type, size of port number, sizeof stream_id_length, + 1 for minimum stream_id_size
-        size_t min_packet_size = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t) + 1;
 
     public:
 

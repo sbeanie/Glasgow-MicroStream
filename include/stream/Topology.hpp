@@ -90,7 +90,7 @@ namespace NAMESPACE_NAME {
             }
         }
 
-#ifdef COMPILE_WITH_BOOST
+#ifdef COMPILE_WITH_BOOST_SERIALIZATION
 
         template<typename T>
         optional<BoostSerializedNetworkSource<T> *> addBoostSerializedNetworkSource(const char *stream_id) {

@@ -286,7 +286,7 @@ namespace NAMESPACE_NAME {
     }
 
 
-// SENDING
+    // SENDING
     void PeerDiscoverer::send_network_data(const char *stream_id, std::pair<uint32_t, void *> data) {
         auto *stream_packet = new StreamPacket(data, false);
         std::pair<uint32_t, void *> stream_packet_data = stream_packet->get_packet();

@@ -35,7 +35,7 @@ namespace NAMESPACE_NAME {
 
 #include "NetworkSink.hpp"
 
-#ifdef COMPILE_WITH_BOOST
+#ifdef COMPILE_WITH_BOOST_SERIALIZATION
 #include "BoostSerializedNetworkSink.hpp"
 #endif
 

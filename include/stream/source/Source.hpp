@@ -33,7 +33,7 @@ namespace NAMESPACE_NAME {
 #include "PolledSource.hpp"
 #include "NetworkSource.hpp"
 
-#ifdef COMPILE_WITH_BOOST
+#ifdef COMPILE_WITH_BOOST_SERIALIZATION
 #include "BoostSerializedNetworkSource.hpp"
 #endif
 

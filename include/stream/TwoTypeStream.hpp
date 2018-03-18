@@ -181,7 +181,7 @@ namespace NAMESPACE_NAME {
             return networkSink;
         }
 
-#ifdef COMPILE_WITH_BOOST
+#ifdef COMPILE_WITH_BOOST_SERIALIZATION
 
         NetworkSink<OUTPUT> *boostSerializedNetworkSink(Topology *topology, const char *stream_id) {
             auto *networkSink = new BoostSerializedNetworkSink<OUTPUT>(topology, stream_id);

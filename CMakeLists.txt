@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 project (GU-Edgent)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-SET(CMAKE_CXX_FLAGS  "-g --std=c++11 -W -Wall -Wpedantic -DCOMPILE_WITH_BOOST" )
+SET(CMAKE_CXX_FLAGS  "-g --std=c++11 -W -Wall -Wpedantic -DCOMPILE_WITH_BOOST_SERIALIZATION" )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

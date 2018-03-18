@@ -49,7 +49,7 @@ namespace NAMESPACE_NAME {
     template<typename T>
     class NetworkSource;
 
-#ifdef COMPILE_WITH_BOOST
+#ifdef COMPILE_WITH_BOOST_SERIALIZATION
     template <typename T>
     class BoostSerializedNetworkSink;
 #endif
