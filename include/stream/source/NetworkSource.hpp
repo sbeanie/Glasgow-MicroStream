@@ -2,7 +2,6 @@
 #define GU_EDGENT_NETWORKSOURCE_H
 
 #include "../StreamTypes.hpp"
-#include <boost/optional.hpp>
 
 namespace NAMESPACE_NAME {
 

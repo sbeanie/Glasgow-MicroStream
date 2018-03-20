@@ -11,7 +11,7 @@
 namespace NAMESPACE_NAME {
 
     class PeerDiscoveryQueryPacket {
-        static uint32_t min_packet_size = sizeof(uint8_t) + sizeof(uint32_t) + 1;
+        static const uint32_t min_packet_size = sizeof(uint8_t) + sizeof(uint32_t) + 1;
 
         // Format of a query packet
         uint8_t packet_type = PEER_DISCOVERY_QUERY_PACKET_TYPE;
