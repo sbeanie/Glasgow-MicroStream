@@ -9,17 +9,17 @@
 
 namespace NAMESPACE_NAME {
 
-    template<typename INPUT, typename OUTPUT>
-    class TwoTypeStream : public Subscriber<INPUT>, public Subscribeable<OUTPUT> {
+    template<typename INPUT_TYPE, typename OUTPUT_TYPE>
+    class TwoTypeStream : public Subscriber<INPUT_TYPE>, public Subscribeable<OUTPUT_TYPE> {
 
     protected:
         std::mutex subscribers_lock;
-        std::list<Subscriber<OUTPUT> *> subscribers;
-        std::list<Subscribeable<INPUT> *> subscribeables;
+        std::list<Subscriber<OUTPUT_TYPE> *> subscribers;
+        std::list<Subscribeable<INPUT_TYPE> *> subscribeables;
 
     public:
 
-        void unsubscribe(Subscriber<OUTPUT> *subscriber) override {
+        void unsubscribe(Subscriber<OUTPUT_TYPE> *subscriber) override {
             std::lock_guard<std::mutex> lock(subscribers_lock);
             for (auto subscribersIterator = subscribers.begin();
                  subscribersIterator != subscribers.end(); subscribersIterator++) {
@@ -30,13 +30,13 @@ namespace NAMESPACE_NAME {
             }
         }
 
-        void subscribe(Subscriber<OUTPUT> *subscriber) override {
+        void subscribe(Subscriber<OUTPUT_TYPE> *subscriber) override {
             std::lock_guard<std::mutex> lock(subscribers_lock);
             subscribers.push_back(subscriber);
-            subscriber->add_subscribeable((Subscribeable<OUTPUT> *) this);
+            subscriber->add_subscribeable((Subscribeable<OUTPUT_TYPE> *) this);
         }
 
-        void notify_subscribeable_deleted(Subscribeable<INPUT> *subscribeable) override {
+        void notify_subscribeable_deleted(Subscribeable<INPUT_TYPE> *subscribeable) override {
             for (auto subscribeableIterator = subscribeables.begin();
                  subscribeableIterator != subscribeables.end(); subscribeableIterator++) {
                 if (*subscribeableIterator == subscribeable) {
@@ -53,14 +53,14 @@ namespace NAMESPACE_NAME {
             if (subscribeables.size() != 0) return false;
             for (auto subscribersIterator = subscribers.begin();
                  subscribersIterator != subscribers.end(); subscribersIterator++) {
-                Subscribeable<OUTPUT> *subscribeable = this;
+                Subscribeable<OUTPUT_TYPE> *subscribeable = this;
                 (*subscribersIterator)->notify_subscribeable_deleted(subscribeable);
             }
             delete (this);
             return true;
         }
 
-        void add_subscribeable(Subscribeable<INPUT> *subscribeable) override {
+        void add_subscribeable(Subscribeable<INPUT_TYPE> *subscribeable) override {
             std::lock_guard<std::mutex> lock(subscribers_lock);
             subscribeables.push_back(subscribeable);
         }
@@ -69,7 +69,7 @@ namespace NAMESPACE_NAME {
          * Publishes the provided value to all subscribers of this stream.
          * @param value
          */
-        virtual void publish(OUTPUT value) override {
+        virtual void publish(OUTPUT_TYPE value) override {
             std::lock_guard<std::mutex> lock(subscribers_lock);
             for (auto subscribersIterator = subscribers.begin();
                  subscribersIterator != subscribers.end(); subscribersIterator++) {
@@ -82,8 +82,8 @@ namespace NAMESPACE_NAME {
          * @param sink_function A function that takes a value of the type of the stream and returns nothing.
          * @return A reference to the sink stream.  Note sink streams do not publish data.
          */
-        Sink<OUTPUT> *sink(void (*sink_function)(OUTPUT)) {
-            Sink<OUTPUT> *sink = new Sink<OUTPUT>(sink_function);
+        Sink<OUTPUT_TYPE> *sink(void (*sink_function)(OUTPUT_TYPE)) {
+            Sink<OUTPUT_TYPE> *sink = new Sink<OUTPUT_TYPE>(sink_function);
             this->subscribe(sink);
             return sink;
         }
@@ -93,8 +93,8 @@ namespace NAMESPACE_NAME {
          * @param filter_function The filter function.  Returning true means the value is kept.
          * @return A reference to the filtered stream.
          */
-        FilterStream<OUTPUT> *filter(bool (*filter_function)(OUTPUT)) {
-            FilterStream<OUTPUT> *filter_stream = new FilterStream<OUTPUT>(filter_function);
+        FilterStream<OUTPUT_TYPE> *filter(bool (*filter_function)(OUTPUT_TYPE)) {
+            FilterStream<OUTPUT_TYPE> *filter_stream = new FilterStream<OUTPUT_TYPE>(filter_function);
             this->subscribe(filter_stream);
             return filter_stream;
         }
@@ -106,15 +106,15 @@ namespace NAMESPACE_NAME {
          * @return A reference to the mapped stream.
          */
         template<typename X>
-        MapStream<OUTPUT, X> *map(X (*map_function)(OUTPUT)) {
-            MapStream<OUTPUT, X> *map_stream = new MapStream<OUTPUT, X>(map_function);
+        MapStream<OUTPUT_TYPE, X> *map(X (*map_function)(OUTPUT_TYPE)) {
+            MapStream<OUTPUT_TYPE, X> *map_stream = new MapStream<OUTPUT_TYPE, X>(map_function);
             this->subscribe(map_stream);
             return map_stream;
         }
 
         template<typename X>
-        StatefulStream<OUTPUT, X> *map_stateful(StatefulMap<OUTPUT, X> *statefulMap) {
-            StatefulStream<OUTPUT, X> *statefulStream = new StatefulStream<OUTPUT, X>(statefulMap);
+        StatefulStream<OUTPUT_TYPE, X> *map_stateful(StatefulMap<OUTPUT_TYPE, X> *statefulMap) {
+            StatefulStream<OUTPUT_TYPE, X> *statefulStream = new StatefulStream<OUTPUT_TYPE, X>(statefulMap);
             this->subscribe(statefulStream);
             return statefulStream;
         }
@@ -125,14 +125,14 @@ namespace NAMESPACE_NAME {
          * @param split_function The function mapping a value to a stream.  The output value is modulo num_streams.
          * @return The list of streams the split function will push data into.
          */
-        std::vector<Stream<OUTPUT> *> split(int num_streams, int (*split_function)(OUTPUT)) {
-            std::vector<Stream<OUTPUT> *> streams;
+        std::vector<Stream<OUTPUT_TYPE> *> split(int num_streams, int (*split_function)(OUTPUT_TYPE)) {
+            std::vector<Stream<OUTPUT_TYPE> *> streams;
 
             for (int i = 0; i < num_streams; i++) {
-                streams.push_back(new Stream<OUTPUT>());
+                streams.push_back(new Stream<OUTPUT_TYPE>());
             }
 
-            SplitStream<OUTPUT> *split_stream = new SplitStream<OUTPUT>(split_function, num_streams, streams);
+            SplitStream<OUTPUT_TYPE> *split_stream = new SplitStream<OUTPUT_TYPE>(split_function, num_streams, streams);
             this->subscribe(split_stream);
             return streams;
         }
@@ -142,8 +142,8 @@ namespace NAMESPACE_NAME {
          * @param streams A list of streams all of the same output type.
          * @return A reference to a stream that publishes the combined output of all unioned streams.
          */
-        Stream<OUTPUT> *union_streams(std::list<Subscribeable<OUTPUT> *> streams) {
-            auto *union_stream = new Stream<OUTPUT>();
+        Stream<OUTPUT_TYPE> *union_streams(std::list<Subscribeable<OUTPUT_TYPE> *> streams) {
+            auto *union_stream = new Stream<OUTPUT_TYPE>();
             this->subscribe(union_stream);
             for (auto ptr = streams.begin(); ptr != streams.end(); ptr++) {
                 (*ptr)->subscribe(union_stream);
@@ -158,9 +158,9 @@ namespace NAMESPACE_NAME {
          * @param func_val_to_int A function mapping a value to a window.  The output of this is modulo number_of_splits.
          * @return A reference to the window encapsulating all window output streams.
          */
-        Window<OUTPUT> *
-        last(std::chrono::duration<double> duration, int number_of_splits, int (*func_val_to_int)(OUTPUT)) {
-            Window<OUTPUT> *window = new Window<OUTPUT>(duration, number_of_splits, func_val_to_int);
+        Window<OUTPUT_TYPE> *
+        last(std::chrono::duration<double> duration, int number_of_splits, int (*func_val_to_int)(OUTPUT_TYPE)) {
+            Window<OUTPUT_TYPE> *window = new Window<OUTPUT_TYPE>(duration, number_of_splits, func_val_to_int);
             this->subscribe(window);
             return window;
         }
@@ -174,17 +174,17 @@ namespace NAMESPACE_NAME {
          * is freed upon data transmission.
          * @return
          */
-        NetworkSink<OUTPUT> *
-        networkSink(Topology *topology, const char *stream_id, std::pair<uint32_t, void *> (*val_to_bytes)(OUTPUT)) {
-            auto *networkSink = new NetworkSink<OUTPUT>(topology, stream_id, val_to_bytes);
+        NetworkSink<OUTPUT_TYPE> *
+        networkSink(Topology *topology, const char *stream_id, std::pair<uint32_t, void *> (*val_to_bytes)(OUTPUT_TYPE)) {
+            auto *networkSink = new NetworkSink<OUTPUT_TYPE>(topology, stream_id, val_to_bytes);
             this->subscribe(networkSink);
             return networkSink;
         }
 
 #ifdef COMPILE_WITH_BOOST_SERIALIZATION
 
-        NetworkSink<OUTPUT> *boostSerializedNetworkSink(Topology *topology, const char *stream_id) {
-            auto *networkSink = new BoostSerializedNetworkSink<OUTPUT>(topology, stream_id);
+        NetworkSink<OUTPUT_TYPE> *boostSerializedNetworkSink(Topology *topology, const char *stream_id) {
+            auto *networkSink = new BoostSerializedNetworkSink<OUTPUT_TYPE>(topology, stream_id);
             this->subscribe(networkSink);
             return networkSink;
         }

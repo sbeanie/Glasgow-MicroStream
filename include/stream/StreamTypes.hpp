@@ -8,7 +8,7 @@ namespace NAMESPACE_NAME {
     template<typename T>
     class Sink;
 
-    template<typename INPUT, typename OUTPUT>
+    template<typename INPUT_TYPE, typename OUTPUT_TYPE>
     class TwoTypeStream;
 
     template<typename T>
@@ -25,13 +25,13 @@ namespace NAMESPACE_NAME {
     template<typename T>
     class Window;
 
-    template<typename INPUT, typename OUTPUT>
+    template<typename INPUT_TYPE, typename OUTPUT_TYPE>
     class MapStream;
 
-    template<typename INPUT, typename OUTPUT>
+    template<typename INPUT_TYPE, typename OUTPUT_TYPE>
     class WindowAggregate;
 
-    template<typename INPUT, typename OUTPUT>
+    template<typename INPUT_TYPE, typename OUTPUT_TYPE>
     class WindowBatch;
 
     template<typename T>
@@ -40,10 +40,10 @@ namespace NAMESPACE_NAME {
     template<typename T>
     class NetworkSink;
 
-    template<typename INPUT, typename OUTPUT>
+    template<typename INPUT_TYPE, typename OUTPUT_TYPE>
     class StatefulStream;
 
-    template<typename INPUT, typename OUTPUT>
+    template<typename INPUT_TYPE, typename OUTPUT_TYPE>
     class StatefulMap;
 
     template<typename T>

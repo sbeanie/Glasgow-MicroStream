@@ -6,25 +6,25 @@
 
 namespace NAMESPACE_NAME {
 
-    template<typename INPUT, typename OUTPUT>
+    template<typename INPUT_TYPE, typename OUTPUT_TYPE>
     class StatefulMap {
     public:
-        virtual OUTPUT apply_stateful_map(INPUT) = 0;
+        virtual OUTPUT_TYPE apply_stateful_map(INPUT_TYPE) = 0;
     };
 
-    template<typename INPUT, typename OUTPUT>
-    class StatefulStream : public TwoTypeStream<INPUT, OUTPUT> {
+    template<typename INPUT_TYPE, typename OUTPUT_TYPE>
+    class StatefulStream : public TwoTypeStream<INPUT_TYPE, OUTPUT_TYPE> {
 
     private:
 
-        StatefulMap<INPUT, OUTPUT> *statefulMap;
+        StatefulMap<INPUT_TYPE, OUTPUT_TYPE> *statefulMap;
 
     public:
 
-        StatefulStream(StatefulMap<INPUT, OUTPUT> *statefulMap) : statefulMap(statefulMap) {
+        StatefulStream(StatefulMap<INPUT_TYPE, OUTPUT_TYPE> *statefulMap) : statefulMap(statefulMap) {
         }
 
-        virtual void receive(INPUT value) {
+        virtual void receive(INPUT_TYPE value) {
             this->publish(statefulMap->apply_stateful_map(value));
         }
     };

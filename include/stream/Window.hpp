@@ -64,29 +64,29 @@ namespace NAMESPACE_NAME {
 
         /**
          * Aggregates the contents of a window using an aggregation function.
-         * @tparam OUTPUT The output of the aggregation function.
+         * @tparam OUTPUT_TYPE The output of the aggregation function.
          * @param func_vals_to_val A function accepting a list of values of the type of the current stream that returns a value
          * of type OUTPUT.
          * @return A reference to the WindowAggregate stream.
          */
-        template<typename OUTPUT>
-        WindowAggregate<T, OUTPUT> *aggregate(OUTPUT (*func_vals_to_val)(std::pair<int, std::list<T> >)) {
-            WindowAggregate<T, OUTPUT> *window_aggregate = new WindowAggregate<T, OUTPUT>(func_vals_to_val);
+        template<typename OUTPUT_TYPE>
+        WindowAggregate<T, OUTPUT_TYPE> *aggregate(OUTPUT_TYPE (*func_vals_to_val)(std::pair<int, std::list<T> >)) {
+            WindowAggregate<T, OUTPUT_TYPE> *window_aggregate = new WindowAggregate<T, OUTPUT_TYPE>(func_vals_to_val);
             this->subscribe(window_aggregate);
             return window_aggregate;
         }
 
         /**
          * Batches the output of a window.
-         * @tparam OUTPUT
+         * @tparam OUTPUT_TYPE
          * @param period The amount of time before publishing the window contents again.
          * @param func_vals_to_val An aggregation function to apply to the batched window contents that returns type OUTPUT.
          * @return
          */
-        template<typename OUTPUT>
-        WindowBatch<T, OUTPUT> *
-        batch(std::chrono::duration<double> period, OUTPUT (*func_vals_to_val)(std::pair<int, std::list<T> >)) {
-            WindowBatch<T, OUTPUT> *window_batch = new WindowBatch<T, OUTPUT>(period, number_of_splits,
+        template<typename OUTPUT_TYPE>
+        WindowBatch<T, OUTPUT_TYPE> *
+        batch(std::chrono::duration<double> period, OUTPUT_TYPE (*func_vals_to_val)(std::pair<int, std::list<T> >)) {
+            WindowBatch<T, OUTPUT_TYPE> *window_batch = new WindowBatch<T, OUTPUT_TYPE>(period, number_of_splits,
                                                                               func_vals_to_val);
             this->subscribe(window_batch);
             return window_batch;

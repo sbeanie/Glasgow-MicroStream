@@ -6,12 +6,12 @@
 
 namespace NAMESPACE_NAME {
 
-    template<typename INPUT, typename OUTPUT>
-    class WindowAggregate : public MapStream<std::pair<int, std::list<INPUT> >, OUTPUT> {
+    template<typename INPUT_TYPE, typename OUTPUT_TYPE>
+    class WindowAggregate : public MapStream<std::pair<int, std::list<INPUT_TYPE> >, OUTPUT_TYPE> {
 
     public:
-        WindowAggregate(OUTPUT (*func_vals_to_val)(std::pair<int, std::list<INPUT> >))
-                : MapStream<std::pair<int, std::list<INPUT> >, OUTPUT>(func_vals_to_val) {};
+        WindowAggregate(OUTPUT_TYPE (*func_vals_to_val)(std::pair<int, std::list<INPUT_TYPE> >))
+                : MapStream<std::pair<int, std::list<INPUT_TYPE> >, OUTPUT_TYPE>(func_vals_to_val) {};
     };
 
 }
