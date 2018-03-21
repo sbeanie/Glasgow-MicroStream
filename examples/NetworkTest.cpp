@@ -39,6 +39,17 @@ int main(int, char **) {
     auto print_sink = [](uint32_t val) {
         std::cout << "Received val " << val << " over the network." << std::endl;
     };
+
+    std::pair<uint32_t, void*> (*int_to_byte_array) (uint32_t) = [] (uint32_t val) {
+        uint32_t *int_ptr = (uint32_t *) malloc(sizeof(uint32_t));
+        *int_ptr = val;
+        return std::pair<uint32_t, void*>(sizeof(val), int_ptr);
+    };
+
+    optional<uint32_t> (*byte_array_to_int) (std::pair<uint32_t, void*>) = [] (std::pair<uint32_t, void*> data) {
+        return optional<uint32_t>(*((uint32_t*) data.second));
+    };
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     Topology *topology = new Topology(std::chrono::seconds(1));
@@ -52,16 +63,18 @@ int main(int, char **) {
     // Union the two data sources and sink them into the network stream "numbers"
     std::list<Subscribeable<uint32_t> *> subscribers = {(Subscribeable<uint32_t> *) int_source2};
     auto *union_stream = int_source->union_streams(subscribers);
-    union_stream->boostSerializedNetworkSink(topology, "numbers");
+//    union_stream->boostSerializedNetworkSink(topology, "numbers");
 
     // Create a new topology source that will read data from the network (potentially from a different sensor)
     // This call fails if another source exists with the same stream_id.
-    optional<BoostSerializedNetworkSource<uint32_t> *> opt_network_int_source = topology->addBoostSerializedNetworkSource<uint32_t>(
-            "numbers");
-    if ( ! opt_network_int_source.is_initialized()) {
-        std::cout << "Failed to create network source" << std::endl;
-        exit(1);
-    }
+//    optional<BoostSerializedNetworkSource<uint32_t> *> opt_network_int_source = topology->addBoostSerializedNetworkSource<uint32_t>(
+//            "numbers");
+//    if ( ! opt_network_int_source.is_initialized()) {
+//        std::cout << "Failed to create network source" << std::endl;
+//        exit(1);
+//    }
+
+    optional<NetworkSource<uint32_t> *> opt_network_int_source = topology->addNetworkSource("numbers", byte_array_to_int);
 
     // Sink the network stream into std.out.
     NetworkSource<uint32_t> *networkSource = opt_network_int_source.value();
@@ -70,6 +83,7 @@ int main(int, char **) {
     std::cout << "Topology built." << std::endl;
 
     while (!topology->peers_connected()) {
+        std::cout << "Waiting for connections..." << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 
