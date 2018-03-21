@@ -46,7 +46,21 @@ namespace NAMESPACE_NAME {
 
         void run();
 
+        int (*one_split_func) (T) = [] (T val) {
+            return 0;
+        };
+
     public:
+
+        Window(std::chrono::duration<double> duration)
+                : duration(duration), number_of_splits(1), func_val_to_int(one_split_func) {
+            this->should_run = true;
+            this->thread_started = false;
+            for (int i = 0; i < number_of_splits; i++) {
+                values.push_back(new std::list<TimestampedValue<T> *>());
+            }
+        };
+
 
         Window(std::chrono::duration<double> duration, int number_of_splits, int (*func_val_to_int)(T))
                 : duration(duration), number_of_splits(number_of_splits), func_val_to_int(func_val_to_int) {

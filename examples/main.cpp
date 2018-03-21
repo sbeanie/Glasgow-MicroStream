@@ -1,6 +1,8 @@
 #include <iostream>
 #include "Stream.hpp"
 
+using namespace glasgow_ustream;
+
 int main(int, char**) {
 
     Topology *topology = new Topology();

@@ -89,7 +89,7 @@ namespace NAMESPACE_NAME {
         }
 
         bool start() {
-            int opt = 1;
+//            int opt = 1;
 
             if ((listen_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
                 perror("socket failed");
