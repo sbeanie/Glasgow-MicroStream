@@ -75,6 +75,8 @@ namespace NAMESPACE_NAME {
                               << inet_ntoa(itr->second.sin_addr) << ":" << itr->second.sin_port << ".  Removing..."
                               << std::endl;
                     // Remove
+                    shutdown(itr->first, SHUT_RDWR);
+                    close(itr->first);
                     itr = subscriber_sockets.erase(itr);
                 } else {
                     itr++;
@@ -82,17 +84,21 @@ namespace NAMESPACE_NAME {
             }
         }
 
-        void start() {
+        bool start() {
             int opt = 1;
 
             if ((listen_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
                 perror("socket failed");
+                stop();
+                return false;
             }
 
-            if (setsockopt(listen_socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
-                           &opt, sizeof(opt))) {
-                perror("PeerSender:");
-            }
+//            if (setsockopt(listen_socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
+//                           &opt, sizeof(opt))) {
+//                perror("PeerSender:");
+//                stop();
+//                return false;
+//            }
 
             address.sin_family = AF_INET;
             address.sin_addr.s_addr = INADDR_ANY;
@@ -100,10 +106,14 @@ namespace NAMESPACE_NAME {
 
             if (bind(listen_socket_fd, (struct sockaddr *) &address, sizeof(address)) < 0) {
                 perror("bind failed");
+                stop();
+                return false;
             }
 
             if (listen(listen_socket_fd, 3) < 0) {
                 perror("listen");
+                stop();
+                return false;
             }
 
             struct sockaddr_in server_address;
@@ -115,20 +125,26 @@ namespace NAMESPACE_NAME {
 
             should_run = true;
             this->thread = std::thread(&PeerSender::start_listening, this);
+            return true;
         }
 
         void stop() {
-            if (listen_socket_fd == 0) return;
-            if (!should_run) return;
-            this->should_run = false;
-            shutdown(listen_socket_fd, SHUT_RDWR);
-            close(listen_socket_fd);
-            this->thread.join();
-            for (auto ptr = subscriber_sockets.begin(); ptr != subscriber_sockets.end(); ptr++) {
-                shutdown(ptr->first, SHUT_RDWR);
-                close(ptr->first);
+            if (should_run) {
+                this->should_run = false;
+                if (listen_socket_fd != 0) {
+                    shutdown(listen_socket_fd, SHUT_RDWR);
+                    close(listen_socket_fd);
+                }
+                for (auto ptr = subscriber_sockets.begin(); ptr != subscriber_sockets.end(); ptr++) {
+                    shutdown(ptr->first, SHUT_RDWR);
+                    close(ptr->first);
+                }
+            }
+            if (std::this_thread::get_id() != thread.get_id()) {
+                if (thread.joinable()) thread.join();
             }
         }
+
 
         PeerSender(const char *stream_id) : stream_id(stream_id) {
 

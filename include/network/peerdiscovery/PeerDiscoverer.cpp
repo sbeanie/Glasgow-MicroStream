@@ -88,6 +88,7 @@ namespace NAMESPACE_NAME {
             if (*list_ptr == peerListener) {
                 peerListenerList->erase(list_ptr++);
                 peerListenerFound = true;
+                break;
             } else {
                 list_ptr++;
             }
@@ -262,7 +263,13 @@ namespace NAMESPACE_NAME {
         if (ptr == stream_ids_to_publish.end()) {
             peerSender = new PeerSender(stream_id);
             stream_ids_to_publish.insert({stream_id, peerSender});
-            peerSender->start();
+            bool success = peerSender->start();
+            if ( ! success) {
+                peerSender->stop();
+                delete(peerSender);
+                printf("Failed to create PeerSender");
+                exit(-2);
+            }
         } else {
             peerSender = ptr->second;
         }
