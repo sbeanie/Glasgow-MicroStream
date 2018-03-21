@@ -37,7 +37,9 @@ namespace NAMESPACE_NAME {
             while (should_run) {
                 if ((new_socket = accept(listen_socket_fd, (struct sockaddr *) &address,
                                          (socklen_t *) &addrlen)) < 0) {
-//                perror("accept");
+                    if (!should_run) return;
+                    std::cerr << "Failed to accept new socket (" << strerror(errno) << ")" << std::endl;
+                    continue;
                 }
                 if (!should_run) return;
                 std::cout << "[" << stream_id << "] Connection from: " << inet_ntoa(address.sin_addr) << ":"
@@ -71,12 +73,14 @@ namespace NAMESPACE_NAME {
             while (itr != subscriber_sockets.end()) {
                 ssize_t bytes_sent = send(itr->first, data.second, data.first, 0);
                 if (bytes_sent < 0) {
-                    std::cerr << "[" << stream_id << "] Failed to send to subscriber "
+                    std::cerr << "[" << stream_id << "] Failed to send ("
+                              << strerror(errno)
+                              << ") to subscriber "
                               << inet_ntoa(itr->second.sin_addr) << ":" << itr->second.sin_port << ".  Removing..."
                               << std::endl;
                     // Remove
-                    shutdown(itr->first, SHUT_RDWR);
                     close(itr->first);
+                    shutdown(itr->first, SHUT_RDWR);
                     itr = subscriber_sockets.erase(itr);
                 } else {
                     itr++;
