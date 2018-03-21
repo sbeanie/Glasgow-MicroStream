@@ -168,11 +168,10 @@ namespace NAMESPACE_NAME {
 
         Window<OUTPUT_TYPE> *
         last(std::chrono::duration<double> duration) {
-            Window<OUTPUT_TYPE> *window = new Window<OUTPUT_TYPE>(duration, 1, nullptr);
+            Window<OUTPUT_TYPE> *window = new Window<OUTPUT_TYPE>(duration);
             this->subscribe(window);
             return window;
         }
-
 
 
         /**

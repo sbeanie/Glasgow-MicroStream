@@ -53,7 +53,8 @@ namespace NAMESPACE_NAME {
     public:
 
         Window(std::chrono::duration<double> duration)
-                : duration(duration), number_of_splits(1), func_val_to_int(one_split_func) {
+                : duration(duration), number_of_splits(1) {
+            this->func_val_to_int = one_split_func;
             this->should_run = true;
             this->thread_started = false;
             for (int i = 0; i < number_of_splits; i++) {
