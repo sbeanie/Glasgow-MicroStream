@@ -130,6 +130,20 @@ namespace NAMESPACE_NAME {
             }
         }
 
+        void run_with_threads() {
+            std::list<std::thread> threads;
+            for (auto &startable : startables) {
+                std::thread thread(&Startable::start, startable);
+                threads.push_back(std::move(thread));
+            }
+            for (auto &thread : threads) {
+                thread.join();
+            }
+            for (auto &startable : startables) {
+                startable->join();
+            }
+        }
+
         void shutdown() {
             for (auto &startable : startables) {
                 startable->stop();

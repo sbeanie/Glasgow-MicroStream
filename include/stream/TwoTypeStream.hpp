@@ -13,14 +13,16 @@ namespace NAMESPACE_NAME {
     class TwoTypeStream : public Subscriber<INPUT_TYPE>, public Subscribeable<OUTPUT_TYPE> {
 
     protected:
-        std::mutex subscribers_lock;
+        std::recursive_mutex subscribers_lock;
         std::list<Subscriber<OUTPUT_TYPE> *> subscribers;
+
+        std::recursive_mutex subscribeables_lock;
         std::list<Subscribeable<INPUT_TYPE> *> subscribeables;
 
     public:
 
         void unsubscribe(Subscriber<OUTPUT_TYPE> *subscriber) override {
-            std::lock_guard<std::mutex> lock(subscribers_lock);
+            std::lock_guard<std::recursive_mutex> lock(subscribers_lock);
             for (auto subscribersIterator = subscribers.begin();
                  subscribersIterator != subscribers.end(); subscribersIterator++) {
                 if (*subscribersIterator == subscriber) {
@@ -31,7 +33,7 @@ namespace NAMESPACE_NAME {
         }
 
         void subscribe(Subscriber<OUTPUT_TYPE> *subscriber) override {
-            std::lock_guard<std::mutex> lock(subscribers_lock);
+            std::lock_guard<std::recursive_mutex> lock(subscribers_lock);
             subscribers.push_back(subscriber);
             subscriber->add_subscribeable((Subscribeable<OUTPUT_TYPE> *) this);
         }
@@ -50,7 +52,10 @@ namespace NAMESPACE_NAME {
         }
 
         bool delete_and_notify() override {
+            std::lock_guard<std::recursive_mutex> lock_subscribeables(subscribeables_lock);
             if (subscribeables.size() != 0) return false;
+
+            std::lock_guard<std::recursive_mutex> lock_subscribers(subscribers_lock);
             for (auto subscribersIterator = subscribers.begin();
                  subscribersIterator != subscribers.end(); subscribersIterator++) {
                 Subscribeable<OUTPUT_TYPE> *subscribeable = this;
@@ -61,7 +66,7 @@ namespace NAMESPACE_NAME {
         }
 
         void add_subscribeable(Subscribeable<INPUT_TYPE> *subscribeable) override {
-            std::lock_guard<std::mutex> lock(subscribers_lock);
+            std::lock_guard<std::recursive_mutex> lock(subscribeables_lock);
             subscribeables.push_back(subscribeable);
         }
 
@@ -70,7 +75,7 @@ namespace NAMESPACE_NAME {
          * @param value
          */
         virtual void publish(OUTPUT_TYPE value) override {
-            std::lock_guard<std::mutex> lock(subscribers_lock);
+            std::lock_guard<std::recursive_mutex> lock(subscribers_lock);
             for (auto subscribersIterator = subscribers.begin();
                  subscribersIterator != subscribers.end(); subscribersIterator++) {
                 (*subscribersIterator)->receive(value);
