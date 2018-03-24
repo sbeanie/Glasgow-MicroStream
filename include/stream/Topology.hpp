@@ -56,6 +56,13 @@ namespace NAMESPACE_NAME {
             return polledSource;
         }
 
+        template <typename T>
+        IterableSource<T> *addIterableSource(Iterable<T> *iterable) {
+            auto *iterableSource = new IterableSource<T>(iterable);
+            startables.push_back((Startable *) iterableSource);
+            return iterableSource;
+        }
+
         void set_broadcast_period(std::chrono::duration<double> period) {
             peerDiscoverer->set_broadcast_period(period);
         }

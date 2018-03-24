@@ -32,6 +32,7 @@ namespace NAMESPACE_NAME {
 #include "FixedDataSource.hpp"
 #include "PolledSource.hpp"
 #include "NetworkSource.hpp"
+#include "IterableSource.hpp"
 
 #ifdef COMPILE_WITH_BOOST_SERIALIZATION
 #include "BoostSerializedNetworkSource.hpp"

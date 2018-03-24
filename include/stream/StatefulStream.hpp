@@ -21,7 +21,7 @@ namespace NAMESPACE_NAME {
 
     public:
 
-        StatefulStream(StatefulMap<INPUT_TYPE, OUTPUT_TYPE> *statefulMap) : statefulMap(statefulMap) {
+        explicit StatefulStream(StatefulMap<INPUT_TYPE, OUTPUT_TYPE> *statefulMap) : statefulMap(statefulMap) {
         }
 
         virtual void receive(INPUT_TYPE value) {
