@@ -39,9 +39,7 @@ public:
     }
 };
 
-int main(int, char**) {
-
-    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+int main(int argc, char** argv) {
 
     auto filter_op  = [] (int val) {
         return val % 2 == 0;
@@ -51,20 +49,38 @@ int main(int, char**) {
         std::cout << val << std::endl;
     };
 
+    if (argc < 2) {
+        exit(1);
+    }
+    int num_cores = atoi(argv[1]);
+
     Topology topology(true);
 
-    NumberGenerator numberGenerator(0, 100000000);
-    CountMap countMap = CountMap();
+    std::vector<NumberGenerator *> numGens;
+    std::vector<CountMap *> countMaps;
+    for (int i = 0; i < num_cores; i++) {
+        auto *numberGenerator = new NumberGenerator(0,1000000000);
+        auto *countMap = new CountMap();
+        numGens.push_back(numberGenerator);
+        countMaps.push_back(countMap);
+        IterableSource<int> *iterableSource = topology.addIterableSource((Iterable<int> *) numGens[i]);
+        FilterStream<int> *filterStream = iterableSource->filter(filter_op);
+        StatefulStream<int,int> *statefulStream = filterStream->map_stateful((StatefulMap<int, int> *) countMaps[i]);
+    }
 
-    IterableSource<int> *iterableSource = topology.addIterableSource((Iterable<int> *) &numberGenerator);
-    FilterStream<int> *filterStream = iterableSource->filter(filter_op);
-    StatefulStream<int,int> *statefulStream = filterStream->map_stateful((StatefulMap<int, int> *) &countMap);
-
+//    IterableSource<int> *iterableSource = topology.addIterableSource((Iterable<int> *) &numberGenerator);
+//    FilterStream<int> *filterStream = iterableSource->filter(filter_op);
+//    StatefulStream<int,int> *statefulStream = filterStream->map_stateful((StatefulMap<int, int> *) &countMap);
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     topology.run_with_threads();
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-    std::cout << countMap.get_count() << std::endl;
+
+    std::cout << countMaps[0]->get_count() << std::endl;
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
     std::cout << "Elapsed time (ms): " << duration << std::endl;
-
     topology.shutdown();
+    for (int i = 0; i < num_cores; i++) {
+        delete(numGens[i]);
+        delete(countMaps[i]);
+    }
 }
