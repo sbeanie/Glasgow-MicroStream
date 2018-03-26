@@ -1,7 +1,7 @@
 #ifndef GU_EDGENT_OPTIONAL_HPP
 #define GU_EDGENT_OPTIONAL_HPP
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     template<typename T>
     class optional {

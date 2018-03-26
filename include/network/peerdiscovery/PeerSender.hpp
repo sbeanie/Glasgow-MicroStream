@@ -11,7 +11,7 @@
 #include <iostream>
 #include <unistd.h>
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     class PeerSender {
 

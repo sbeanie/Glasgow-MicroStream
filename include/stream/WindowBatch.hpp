@@ -8,7 +8,7 @@
 #include <thread>
 #include <list>
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     template<typename INPUT_TYPE, typename OUTPUT_TYPE>
     class WindowBatch : public TwoTypeStream<std::pair<int, std::list<INPUT_TYPE> >, OUTPUT_TYPE> {

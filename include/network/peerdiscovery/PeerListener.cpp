@@ -1,6 +1,6 @@
 #include "PeerListener.hpp"
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     void PeerListener::run() {
         ssize_t recv_bytes_received;

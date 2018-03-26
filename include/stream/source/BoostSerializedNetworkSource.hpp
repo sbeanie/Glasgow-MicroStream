@@ -6,7 +6,7 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/iostreams/stream.hpp>
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     template<typename T>
     class BoostSerializedNetworkSource : public NetworkSource<T> {

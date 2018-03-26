@@ -9,7 +9,7 @@
 #define DEFAULT_MULTICAST_GROUP "225.0.0.37"
 #define DEFAULT_UDP_PORT 12345
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     class Topology {
 

@@ -3,7 +3,7 @@
 
 #include "StreamTypes.hpp"
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     template<typename INPUT_TYPE, typename OUTPUT_TYPE>
     class MapStream : public TwoTypeStream<INPUT_TYPE, OUTPUT_TYPE> {

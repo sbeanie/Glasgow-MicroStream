@@ -8,7 +8,7 @@
 
 #include "PeerDiscoveryPacketTypes.hpp"
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     class PeerDiscoveryReplyPacket {
         // Minimum packet size should be size of packet type, size of port number, sizeof stream_id_length, + 1 for minimum stream_id_size

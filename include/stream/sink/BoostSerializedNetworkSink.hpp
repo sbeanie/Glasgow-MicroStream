@@ -7,7 +7,7 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     template<typename T>
     class BoostSerializedNetworkSink : public NetworkSink<T> {

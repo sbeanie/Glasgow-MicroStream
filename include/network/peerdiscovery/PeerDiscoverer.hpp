@@ -21,7 +21,7 @@
 #define GU_EDGENT_NETWORK_BUFFER_SIZE 1024
 #endif
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     class PeerListener;
 

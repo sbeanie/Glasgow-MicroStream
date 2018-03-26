@@ -3,7 +3,7 @@
 
 #include "Subscribeable.hpp"
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     template<typename T>
     class Subscribeable;

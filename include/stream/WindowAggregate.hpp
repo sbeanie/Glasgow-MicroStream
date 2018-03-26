@@ -4,7 +4,7 @@
 #include "StreamTypes.hpp"
 #include <list>
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     template<typename INPUT_TYPE, typename OUTPUT_TYPE>
     class WindowAggregate : public MapStream<std::pair<int, std::list<INPUT_TYPE> >, OUTPUT_TYPE> {

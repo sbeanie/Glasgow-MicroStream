@@ -1,7 +1,7 @@
 #include "packet/StreamPacket.hpp"
 #include "PeerDiscoverer.hpp"
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     void PeerDiscoverer::start() {
         if (should_run) return;

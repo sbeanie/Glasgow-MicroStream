@@ -8,7 +8,7 @@
 
 #include "PeerDiscoveryPacketTypes.hpp"
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     class PeerDiscoveryQueryPacket {
         static const uint32_t min_packet_size = sizeof(uint8_t) + sizeof(uint32_t) + 1;

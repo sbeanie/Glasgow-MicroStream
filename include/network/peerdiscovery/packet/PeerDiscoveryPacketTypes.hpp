@@ -5,7 +5,7 @@
 #define PEER_DISCOVERY_QUERY_PACKET_TYPE 1
 #define PEER_DISCOVERY_REPLY_PACKET_TYPE 2
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     class PeerDiscoveryPacket {
 

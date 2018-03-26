@@ -4,7 +4,7 @@
 #include "StreamTypes.hpp"
 #include "Subscriber.hpp"
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     template<typename INPUT_TYPE, typename OUTPUT_TYPE>
     class StatefulMap {

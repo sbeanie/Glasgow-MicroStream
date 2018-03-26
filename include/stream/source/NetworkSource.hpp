@@ -3,7 +3,7 @@
 
 #include "../StreamTypes.hpp"
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     class StreamPacketDataReceiver {
 

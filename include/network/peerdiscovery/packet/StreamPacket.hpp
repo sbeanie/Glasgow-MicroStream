@@ -11,7 +11,7 @@
 #define STREAM_PACKET_END_DELIMITER "StreamPacketEnd"
 #define STREAM_PACKET_MINIMUM_CONSTRUCTION_SIZE strlen(STREAM_PACKET_START_DELIMITER) + 1 + sizeof(uint32_t)
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     class StreamPacket {
 

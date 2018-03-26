@@ -7,7 +7,7 @@
 #include <chrono>
 #include <vector>
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     template<typename INPUT_TYPE, typename OUTPUT_TYPE>
     class TwoTypeStream : public Subscriber<INPUT_TYPE>, public Subscribeable<OUTPUT_TYPE> {

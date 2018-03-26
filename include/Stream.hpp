@@ -1,8 +1,6 @@
 #ifndef _STREAM_H_
 #define _STREAM_H_
 
-#define NAMESPACE_NAME glasgow_ustream
-
 #include "util/optional.hpp"
 
 #include "stream/StreamTypes.hpp"

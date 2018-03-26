@@ -1,6 +1,6 @@
 #include "Window.hpp"
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     template<typename T>
     TimestampedValue<T> *Window<T>::earliest_t_val() {

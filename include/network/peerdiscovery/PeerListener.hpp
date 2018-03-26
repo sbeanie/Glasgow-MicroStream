@@ -15,7 +15,7 @@
 #include "PeerDiscoverer.hpp"
 #include "packet/StreamPacket.hpp"
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     class PeerListener {
 

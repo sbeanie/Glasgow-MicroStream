@@ -10,7 +10,7 @@
 #include <list>
 #include <mutex>
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     template<class T>
     struct TimestampedValue {

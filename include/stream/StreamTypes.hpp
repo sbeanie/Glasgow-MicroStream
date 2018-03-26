@@ -1,7 +1,7 @@
 #ifndef _STREAM_TYPES_H_
 #define _STREAM_TYPES_H_
 
-namespace NAMESPACE_NAME {
+namespace glasgow_ustream {
 
     class Topology;
 
