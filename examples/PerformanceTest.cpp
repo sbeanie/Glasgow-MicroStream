@@ -68,9 +68,6 @@ int main(int argc, char** argv) {
         StatefulStream<int,int> *statefulStream = filterStream->map_stateful((StatefulMap<int, int> *) countMaps[i]);
     }
 
-//    IterableSource<int> *iterableSource = topology.addIterableSource((Iterable<int> *) &numberGenerator);
-//    FilterStream<int> *filterStream = iterableSource->filter(filter_op);
-//    StatefulStream<int,int> *statefulStream = filterStream->map_stateful((StatefulMap<int, int> *) &countMap);
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     topology.run_with_threads();
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
