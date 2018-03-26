@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
     std::vector<NumberGenerator *> numGens;
     std::vector<CountMap *> countMaps;
     for (int i = 0; i < num_cores; i++) {
-        auto *numberGenerator = new NumberGenerator(0,1000000000);
+        auto *numberGenerator = new NumberGenerator(0, 1000000000);
         auto *countMap = new CountMap();
         numGens.push_back(numberGenerator);
         countMaps.push_back(countMap);

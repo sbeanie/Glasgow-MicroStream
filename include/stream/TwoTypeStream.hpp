@@ -190,7 +190,11 @@ namespace NAMESPACE_NAME {
             return window;
         }
 
-
+        /**
+         * Creates a window of the current stream where values are preserved for the time specified in the duration.
+         * @param duration The amount of times values should remain in the window.
+         * @return A reference to the window.  This method does not allow you to split at the same time.
+         */
         Window<OUTPUT_TYPE> *
         last(std::chrono::duration<double> duration) {
             Window<OUTPUT_TYPE> *window = new Window<OUTPUT_TYPE>(duration);
