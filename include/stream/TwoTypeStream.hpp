@@ -18,89 +18,10 @@ namespace glasgow_ustream {
         std::recursive_mutex subscribers_lock;
         std::recursive_mutex subscribeables_lock;
 #endif
-        std::list<Subscriber<OUTPUT_TYPE> *> subscribers;
-        std::list<Subscribeable<INPUT_TYPE> *> subscribeables;
+        std::list<Subscriber<OUTPUT_TYPE> *> subscribers; // A list of nodes subscribed to this stream.
+        std::list<Subscribeable<INPUT_TYPE> *> subscribeables;  // A list of publishers that this stream is subscribed to.
 
     public:
-
-        void unsubscribe(Subscriber<OUTPUT_TYPE> *subscriber) override {
-#ifndef UNSAFE_TOPOLOGY_MODIFICATION
-            std::lock_guard<std::recursive_mutex> lock(subscribers_lock);
-#endif
-            for (auto subscribersIterator = subscribers.begin();
-                 subscribersIterator != subscribers.end(); subscribersIterator++) {
-                if (*subscribersIterator == subscriber) {
-                    subscribers.remove(*subscribersIterator);
-                    return;
-                }
-            }
-        }
-
-        void subscribe(Subscriber<OUTPUT_TYPE> *subscriber) override {
-#ifndef UNSAFE_TOPOLOGY_MODIFICATION
-            std::lock_guard<std::recursive_mutex> lock(subscribers_lock);
-#endif
-            subscribers.push_back(subscriber);
-            subscriber->add_subscribeable((Subscribeable<OUTPUT_TYPE> *) this);
-        }
-
-        void notify_subscribeable_deleted(Subscribeable<INPUT_TYPE> *subscribeable) override {
-            {
-#ifndef UNSAFE_TOPOLOGY_MODIFICATION
-                std::lock_guard<std::recursive_mutex> lock(subscribeables_lock);
-#endif
-                for (auto subscribeableIterator = subscribeables.begin();
-                     subscribeableIterator != subscribeables.end(); subscribeableIterator++) {
-                    if (*subscribeableIterator == subscribeable) {
-                        subscribeables.remove(*subscribeableIterator);
-                        break;
-                    }
-                }
-                if (subscribeables.size() != 0) return;
-            }
-            delete_and_notify();
-        }
-
-        bool delete_and_notify() override {
-            {
-#ifndef UNSAFE_TOPOLOGY_MODIFICATION
-                std::lock_guard<std::recursive_mutex> lock_subscribeables(subscribeables_lock);
-#endif
-                if (subscribeables.size() != 0) return false;
-
-#ifndef UNSAFE_TOPOLOGY_MODIFICATION
-                std::lock_guard<std::recursive_mutex> lock_subscribers(subscribers_lock);
-#endif
-                for (auto subscribersIterator = subscribers.begin();
-                     subscribersIterator != subscribers.end(); subscribersIterator++) {
-                    Subscribeable<OUTPUT_TYPE> *subscribeable = this;
-                    (*subscribersIterator)->notify_subscribeable_deleted(subscribeable);
-                }
-            }
-            delete (this);
-            return true;
-        }
-
-        void add_subscribeable(Subscribeable<INPUT_TYPE> *subscribeable) override {
-#ifndef UNSAFE_TOPOLOGY_MODIFICATION
-            std::lock_guard<std::recursive_mutex> lock(subscribeables_lock);
-#endif
-            subscribeables.push_back(subscribeable);
-        }
-
-        /**
-         * Publishes the provided value to all subscribers of this stream.
-         * @param value
-         */
-        virtual void publish(OUTPUT_TYPE value) override {
-#ifndef UNSAFE_TOPOLOGY_MODIFICATION
-            std::lock_guard<std::recursive_mutex> lock(subscribers_lock);
-#endif
-            for (auto subscribersIterator = subscribers.begin();
-                 subscribersIterator != subscribers.end(); subscribersIterator++) {
-                (*subscribersIterator)->receive(value);
-            }
-        }
 
         /**
          * Sinks any output that is published by this stream into the function provided.
@@ -125,7 +46,7 @@ namespace glasgow_ustream {
         }
 
         /**
-         * Maps the current streams output to a stream of type X.
+         * Maps the current stream's output to a stream of type X.
          * @tparam X The type of the new stream.
          * @param map_function A function mapping a value from the current stream to a value of the new type.
          * @return A reference to the mapped stream.
@@ -137,6 +58,12 @@ namespace glasgow_ustream {
             return map_stream;
         }
 
+        /**
+         * Maps the current stream's output to a stream of type X, with the option of maintaining state.
+         * @tparam X The type of the output.
+         * @param statefulMap A pointer to an object that implements the StatefulMap interface.
+         * @return A reference to the StatefulStream.
+         */
         template<typename X>
         StatefulStream<OUTPUT_TYPE, X> *map_stateful(StatefulMap<OUTPUT_TYPE, X> *statefulMap) {
             StatefulStream<OUTPUT_TYPE, X> *statefulStream = new StatefulStream<OUTPUT_TYPE, X>(statefulMap);
@@ -195,8 +122,7 @@ namespace glasgow_ustream {
          * @param duration The amount of times values should remain in the window.
          * @return A reference to the window.  This method does not allow you to split at the same time.
          */
-        Window<OUTPUT_TYPE> *
-        last(std::chrono::duration<double> duration) {
+        Window<OUTPUT_TYPE> *last(std::chrono::duration<double> duration) {
             Window<OUTPUT_TYPE> *window = new Window<OUTPUT_TYPE>(duration);
             this->subscribe(window);
             return window;
@@ -204,7 +130,7 @@ namespace glasgow_ustream {
 
 
         /**
-         * Sinks data into the network.
+         * Sinks data into the network via the peer discovery protocol.
          * @param topology
          * @param stream_id The name of the stream where data should be published.
          * @param val_to_bytes This function should return a pointer to a region of memory, and its size.  The region of memory
@@ -220,6 +146,13 @@ namespace glasgow_ustream {
 
 #ifdef COMPILE_WITH_BOOST_SERIALIZATION
 
+        /**
+         * If boost serialization is enabled via the compilation flag COMPILE_WITH_BOOST_SERIALIZATION, this method can
+         * be used to make serialization/deserialization of types/classes more simple.
+         * @param topology The topology reference.
+         * @param stream_id The stream identifier stream values should be published to via the peer discovery protocol.
+         * @return a reference to a NetworkSink object.
+         */
         NetworkSink<OUTPUT_TYPE> *boostSerializedNetworkSink(Topology *topology, const char *stream_id) {
             auto *networkSink = new BoostSerializedNetworkSink<OUTPUT_TYPE>(topology, stream_id);
             this->subscribe(networkSink);
@@ -228,8 +161,30 @@ namespace glasgow_ustream {
 
 #endif
 
+        /**
+         * Publishes the provided value to all subscribers of this stream.
+         * @param value the value to be published.
+         */
+        virtual void publish(OUTPUT_TYPE value) override {
+#ifndef UNSAFE_TOPOLOGY_MODIFICATION
+            std::lock_guard<std::recursive_mutex> lock(subscribers_lock);
+#endif
+            for (auto subscribersIterator = subscribers.begin();
+                 subscribersIterator != subscribers.end(); subscribersIterator++) {
+                (*subscribersIterator)->receive(value);
+            }
+        }
+
+        void unsubscribe(Subscriber<OUTPUT_TYPE> *) override;
+        void subscribe(Subscriber<OUTPUT_TYPE> *) override;
+        void notify_subscribeable_deleted(Subscribeable<INPUT_TYPE> *) override;
+        bool delete_and_notify() override;
+        void add_subscribeable(Subscribeable<INPUT_TYPE> *) override;
+
         virtual ~TwoTypeStream() {}
     };
 
 }
+
+#include "TwoTypeStream.cpp"
 #endif

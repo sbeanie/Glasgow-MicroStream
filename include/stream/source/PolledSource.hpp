@@ -9,10 +9,19 @@ namespace glasgow_ustream {
     template<typename T>
     class PolledSource;
 
+    /**
+     * Extend this class to create a PolledSource node.
+     * @tparam T
+     */
     template<typename T>
     class Pollable {
 
     public:
+        /**
+         * This function should return the next data value for the source.
+         * @param caller This can be used to request the PolledSource to stop.
+         * @return the next value in the stream.
+         */
         virtual T getData(PolledSource<T> *caller) = 0;
     };
 

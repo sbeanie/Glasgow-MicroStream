@@ -41,6 +41,37 @@ namespace glasgow_ustream {
 
     public:
 
+        /**
+         * Constructs a peer listener that is responsible for receiving stream values over a tcp socket.
+         * @param peerDiscoverer the peerdiscover object.
+         * @param stream_id the stream identifier this listener is responsible for.
+         * @param source_addr the ip address of the source.
+         * @param port_number the port the stream is hosted on the source's device.
+         * @param streamPacketDataReceiver the deserializer that the data received should be forwarded to.
+         */
+        PeerListener(PeerDiscoverer *peerDiscoverer, const char *stream_id, in_addr source_addr, uint16_t port_number,
+                     StreamPacketDataReceiver *streamPacketDataReceiver) :
+                peerDiscoverer(peerDiscoverer), streamPacketDataReceiver(streamPacketDataReceiver),
+                port_number(port_number), source_addr(source_addr) {
+            this->should_run = true;
+            this->should_process_data = false;
+
+            this->stream_id = (char *) malloc(strlen(stream_id) + 1);
+            strcpy(this->stream_id, stream_id);
+
+            this->thread = std::thread(&PeerListener::run, this);
+        }
+
+        /**
+         * Called when the listener should start to push data it receives through the topology.
+         */
+        void start() {
+            should_process_data = true;
+        }
+
+        /**
+         * Shutdown the peer listener and free its resources.
+         */
         void stop() {
             if (should_run) {
                 this->should_run = false;
@@ -64,23 +95,6 @@ namespace glasgow_ustream {
 
         in_addr get_source_addr() {
             return source_addr;
-        }
-
-        void start() {
-            should_process_data = true;
-        }
-
-        PeerListener(PeerDiscoverer *peerDiscoverer, const char *stream_id, in_addr source_addr, uint16_t port_number,
-                     StreamPacketDataReceiver *streamPacketDataReceiver) :
-                peerDiscoverer(peerDiscoverer), streamPacketDataReceiver(streamPacketDataReceiver),
-                port_number(port_number), source_addr(source_addr) {
-            this->should_run = true;
-            this->should_process_data = false;
-
-            this->stream_id = (char *) malloc(strlen(stream_id) + 1);
-            strcpy(this->stream_id, stream_id);
-
-            this->thread = std::thread(&PeerListener::run, this);
         }
 
         ~PeerListener() {

@@ -236,6 +236,7 @@ namespace glasgow_ustream {
                     send_peer_discovery_reply(peerSender);
                 }
             }
+            this->cleanup_peer_listeners();
             std::this_thread::sleep_for(broadcast_period);
         }
     }
@@ -257,11 +258,15 @@ namespace glasgow_ustream {
     }
 
     void PeerDiscoverer::register_network_sink(const char *stream_id) {
+        this->register_network_sink(stream_id, 0); // 0 means any port available
+    }
+
+    void PeerDiscoverer::register_network_sink(const char *stream_id, uint16_t tcp_port) {
         std::lock_guard<std::recursive_mutex> lock(publish_lock);
         PeerSender *peerSender = nullptr;
         auto ptr = stream_ids_to_publish.find(stream_id);
         if (ptr == stream_ids_to_publish.end()) {
-            peerSender = new PeerSender(stream_id);
+            peerSender = new PeerSender(stream_id, tcp_port);
             stream_ids_to_publish.insert({stream_id, peerSender});
             bool success = peerSender->start();
             if ( ! success) {
@@ -295,13 +300,18 @@ namespace glasgow_ustream {
 
     // SENDING
     void PeerDiscoverer::send_network_data(const char *stream_id, std::pair<uint32_t, void *> data) {
+        // Construct a stream packet to encapsulate the data and allow the receivers to delimit the tcp stream.
         auto *stream_packet = new StreamPacket(data, false);
         std::pair<uint32_t, void *> stream_packet_data = stream_packet->get_packet();
 
+        // Locate the peer sender responsible for the stream_id
         std::lock_guard<std::recursive_mutex> lock(publish_lock);
         PeerSender *peerSender = nullptr;
         auto ptr = stream_ids_to_publish.find(stream_id);
-        if (ptr == stream_ids_to_publish.end()) return;
+        if (ptr == stream_ids_to_publish.end()) {
+            delete(stream_packet);
+            return;
+        }
 
         peerSender = ptr->second;
         peerSender->send_data(stream_packet_data);

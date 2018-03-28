@@ -10,6 +10,10 @@ namespace glasgow_ustream {
     class WindowAggregate : public MapStream<std::pair<int, std::list<INPUT_TYPE> >, OUTPUT_TYPE> {
 
     public:
+        /**
+         * Constructs a window aggregate stream node.  Underneath it is just a MapStream.
+         * @param func_vals_to_val a function mapping a list of values of one type to an output type.
+         */
         WindowAggregate(OUTPUT_TYPE (*func_vals_to_val)(std::pair<int, std::list<INPUT_TYPE> >))
                 : MapStream<std::pair<int, std::list<INPUT_TYPE> >, OUTPUT_TYPE>(func_vals_to_val) {};
     };

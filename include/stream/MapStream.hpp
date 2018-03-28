@@ -10,6 +10,11 @@ namespace glasgow_ustream {
         OUTPUT_TYPE (*map_function)(INPUT_TYPE);
 
     public:
+        /**
+         * Provides functionality to map a value from one type to the other.  It is not required for the type to change,
+         * and can also just be used to alter a value.
+         * @param map_function The mapping function that takes a value and returns another, possibly of a different type.
+         */
         explicit MapStream(OUTPUT_TYPE (*map_function)(INPUT_TYPE)) : map_function(map_function) {};
 
         virtual void receive(INPUT_TYPE value) {

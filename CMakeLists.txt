@@ -12,7 +12,7 @@ include_directories ("${PROJECT_SOURCE_DIR}/include")
 
 
 #add_executable(GU-Edgent main.cpp)
-add_executable(GU-Edgent examples/PerformanceTest.cpp)
+add_executable(GU-Edgent examples/NetworkTest.cpp)
 
 #find_package( Boost 1.66 REQUIRED COMPONENTS serialization )
 find_package( Boost 1.66 REQUIRED COMPONENTS )

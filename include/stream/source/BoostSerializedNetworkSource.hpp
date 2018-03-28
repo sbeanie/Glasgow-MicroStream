@@ -15,6 +15,8 @@ namespace glasgow_ustream {
 
     public:
         BoostSerializedNetworkSource() : NetworkSource<T>() {
+            // Create a generic deserialization function that operates with a class T that is a friend to
+            // boost::serialization::access.  (See boostserialize.cpp)
             this->deserialize_func = [](std::pair<uint32_t, void *> data) {
                 boost::iostreams::basic_array_source<char> source((char *) data.second, data.first);
                 boost::iostreams::stream<boost::iostreams::basic_array_source<char> > stream(source);

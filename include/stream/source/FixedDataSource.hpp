@@ -6,6 +6,10 @@
 
 namespace glasgow_ustream {
 
+    /**
+     * This class provides a means of pushing a fixed set of values through a topology.
+     * @tparam T
+     */
     template<typename T>
     class FixedDataSource : public Source<T> {
 

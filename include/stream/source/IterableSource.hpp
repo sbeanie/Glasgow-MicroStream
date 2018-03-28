@@ -5,11 +5,24 @@
 
 namespace glasgow_ustream {
 
+    /**
+     * Extend this class and implement its methods in order to create an IterableSource node.
+     * @tparam T The type of the class.
+     */
     template <typename T>
     class Iterable {
 
     public:
+        /**
+         * This should return true if next() will return data.
+         * @return
+         */
         virtual bool has_next() = 0;
+
+        /**
+         * This should return the next value in the iterable.
+         * @return the next value of type T.
+         */
         virtual T next() = 0;
     };
 

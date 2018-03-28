@@ -1,5 +1,7 @@
 #include "Stream.hpp"
 
+using namespace glasgow_ustream;
+
 class IntMapStateful : public StatefulMap<int, int> {
 
 private:

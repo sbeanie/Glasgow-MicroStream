@@ -5,7 +5,7 @@ using namespace glasgow_ustream;
 
 int main(int, char**) {
 
-    Topology *topology = new Topology();
+    Topology *topology = new Topology(true);
 
     Stream<int>* odd_nums = topology->addFixedDataSource(std::list<int>{1,3,5,7,9,11,13,15});
     Stream<int>* even_nums = topology->addFixedDataSource(std::list<int>{0,2,4,6,8,10,12,14});

@@ -27,6 +27,20 @@ namespace glasgow_ustream {
 
     public:
 
+        /**
+         * Constructs a PeerDiscoveryReplyPacket for a stream_id
+         * @param stream_id the stream identifier to announce.
+         */
+        explicit PeerDiscoveryReplyPacket(uint16_t port_number, const char *stream_id) :
+                port_number(port_number), stream_id(stream_id) {
+            stream_id_length = strlen(stream_id) + 1; // + 1 for \0
+            valid = true;
+        }
+
+        /**
+         * Deconstructs a supposed PeerDiscoveryReplyPacket from bytes.
+         * @param data the raw bytes that were received.
+         */
         explicit PeerDiscoveryReplyPacket(std::pair<uint32_t, void *> data) {
             uint32_t data_length = data.first;
             if (data_length < min_packet_size) {
@@ -62,6 +76,11 @@ namespace glasgow_ustream {
             return stream_id;
         }
 
+        /**
+         * Should be called before calling get_stream_id() and get_port_number() in order to make sure a valid reply
+         * packet was deserialized.
+         * @return true if deserialization was successful.
+         */
         bool is_valid() {
             return valid;
         }
@@ -70,6 +89,10 @@ namespace glasgow_ustream {
             return port_number;
         }
 
+        /**
+         * Constructs a reploy packet in memory.
+         * @return the raw bytes representing a reply packet that can be sent over the network.
+         */
         std::pair<size_t, void *> get_packet_data() {
             size_t packet_size = sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint32_t) + stream_id_length;
             auto *packet = (char *) malloc(packet_size);
@@ -87,12 +110,6 @@ namespace glasgow_ustream {
             memcpy(ptr, stream_id, stream_id_length);
 
             return {packet_size, packet};
-        }
-
-        PeerDiscoveryReplyPacket(uint16_t port_number, const char *stream_id) :
-                port_number(port_number), stream_id(stream_id) {
-            stream_id_length = strlen(stream_id) + 1; // + 1 for \0
-            valid = true;
         }
     };
 }

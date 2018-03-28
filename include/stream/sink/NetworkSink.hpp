@@ -5,6 +5,11 @@
 
 namespace glasgow_ustream {
 
+    /**
+    * This class represents a sink that is capable of serializing a type/class and publishing it via the peer discovery
+     * protocol.
+    * @tparam T
+    */
     template<typename T>
     class NetworkSink : public Subscriber<T> {
 
@@ -28,7 +33,10 @@ namespace glasgow_ustream {
         }
 
         void receive(T val) {
-            if (val_to_bytes == nullptr) return;
+            if (val_to_bytes == nullptr) {
+                // This is the case when the boost serialized network sink has not yet initialized the function.
+                return;
+            }
             std::pair<uint32_t, void *> data = val_to_bytes(val);
             topology->send_network_data(stream_id, data);
             free(data.second);

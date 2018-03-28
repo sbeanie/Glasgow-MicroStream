@@ -13,6 +13,9 @@
 
 namespace glasgow_ustream {
 
+    /**
+     * This class acts as a means to encapsulate stream values.  It provides a way to delimit stream values on a TCP stream.
+     */
     class StreamPacket {
 
     private:

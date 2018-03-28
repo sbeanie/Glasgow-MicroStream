@@ -30,6 +30,9 @@ namespace glasgow_ustream {
         std::thread thread;
         bool should_run = false;
 
+        /**
+         *  Listens for new subscription requests and addsd them to the list of known subscribers.
+         */
         void start_listening() {
 
             int new_socket;
@@ -51,6 +54,20 @@ namespace glasgow_ustream {
 
     public:
 
+        /**
+         * Constructs a peer sender responsible for publishing a stream to the peer discovery protocol.  It binds to a
+         * random port.
+         * @param stream_id the stream identifier to use.
+         */
+        explicit PeerSender(const char *stream_id) : stream_id(stream_id) {}
+
+        /**
+         * Constructs a peer sender responsible for publishing a stream to the peer discovery protocol.  It binds to the
+         * specified port.
+         * @param stream_id the stream identifier to use.
+         */
+        PeerSender(const char *stream_id, uint16_t tcp_port) : stream_id(stream_id), tcp_port(tcp_port) {}
+
         bool has_connections() {
             std::lock_guard<std::recursive_mutex> lock(subscriber_sockets_lock);
             return subscriber_sockets.size() > 0;
@@ -64,6 +81,10 @@ namespace glasgow_ustream {
             return stream_id;
         }
 
+        /**
+         * Attempts to send the data to all connected subscribers.
+         * @param data raw bytes to send over the socket.
+         */
         void send_data(std::pair<size_t, void *> data) {
             std::lock_guard<std::recursive_mutex> lock(subscriber_sockets_lock);
             if (subscriber_sockets.size() == 0) {
@@ -88,6 +109,10 @@ namespace glasgow_ustream {
             }
         }
 
+        /**
+         * Initializes the peer sender and starts the server socket thread.
+         * @return
+         */
         bool start() {
 //            int opt = 1;
 
@@ -147,15 +172,6 @@ namespace glasgow_ustream {
             if (std::this_thread::get_id() != thread.get_id()) {
                 if (thread.joinable()) thread.join();
             }
-        }
-
-
-        PeerSender(const char *stream_id) : stream_id(stream_id) {
-
-        }
-
-        PeerSender(const char *stream_id, uint16_t tcp_port) : stream_id(stream_id), tcp_port(tcp_port) {
-
         }
     };
 

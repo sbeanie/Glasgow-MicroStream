@@ -12,6 +12,10 @@
 
 namespace glasgow_ustream {
 
+    /**
+     * This class is a container used by time-based operations in order to manage values.
+     * @tparam T
+     */
     template<class T>
     struct TimestampedValue {
         int split_number;
@@ -46,12 +50,16 @@ namespace glasgow_ustream {
 
         void run();
 
-        int (*one_split_func) (T) = [] (T val) {
+        int (*one_split_func) (T) = [] (T) {
             return 0;
         };
 
     public:
 
+        /**
+         * Constructs a window with the specified duration, but with only one output stream.
+         * @param duration the amount of time a value remains in the window.
+         */
         Window(std::chrono::duration<double> duration)
                 : duration(duration), number_of_splits(1) {
             this->func_val_to_int = one_split_func;
@@ -63,6 +71,14 @@ namespace glasgow_ustream {
         };
 
 
+        /**
+         * Constructs a window with the specified duration.  The window will map values to an output stream based on the
+         * returned value by the func_val_to_int.
+         * @param duration the amount of time a value remains in the window.
+         * @param number_of_splits the number of output streams.
+         * @param func_val_to_int a function that maps a value to an output stream.  The returned value is modulo'd the
+         * number of splits.
+         */
         Window(std::chrono::duration<double> duration, int number_of_splits, int (*func_val_to_int)(T))
                 : duration(duration), number_of_splits(number_of_splits), func_val_to_int(func_val_to_int) {
             this->should_run = true;
@@ -110,7 +126,6 @@ namespace glasgow_ustream {
         void publish(std::pair<int, std::list<T> > keyValuePair);
 
         void receive(T value);
-
 
         bool delete_and_notify() override {
             if (this->subscribeables.size() != 0) return false;
