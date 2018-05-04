@@ -128,7 +128,14 @@ namespace glasgow_ustream {
             return window;
         }
 
-        TailStream<OUTPUT_TYPE> *tail(int tail_size) {
+        /**
+         * Creates a tail of the current stream for which the last "tail_size" values to pass through the stream are
+         * published as an ordered list whenever the tail of the stream changes.
+         * @param tail_size The number of elements to include in the tail.
+         * @return A reference to the tail stream.
+         */
+        TailStream<OUTPUT_TYPE> *tail(unsigned int tail_size) {
+            if (tail_size < 1) return nullptr;
             TailStream<OUTPUT_TYPE>* tail_stream = new TailStream<OUTPUT_TYPE>(tail_size);
             this->subscribe(tail_stream);
             return tail_stream;
