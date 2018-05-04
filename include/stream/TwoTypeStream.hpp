@@ -128,6 +128,12 @@ namespace glasgow_ustream {
             return window;
         }
 
+        TailStream<OUTPUT_TYPE> *tail(int tail_size) {
+            TailStream<OUTPUT_TYPE>* tail_stream = new TailStream<OUTPUT_TYPE>(tail_size);
+            this->subscribe(tail_stream);
+            return tail_stream;
+        }
+
 
         /**
          * Sinks data into the network via the peer discovery protocol.

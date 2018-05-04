@@ -28,6 +28,9 @@ namespace glasgow_ustream {
     template<typename INPUT_TYPE, typename OUTPUT_TYPE>
     class MapStream;
 
+    template <typename T>
+    class TailStream;
+
     template<typename INPUT_TYPE, typename OUTPUT_TYPE>
     class WindowAggregate;
 
