@@ -18,7 +18,7 @@ namespace glasgow_ustream {
         uint8_t packet_type = PEER_DISCOVERY_REPLY_PACKET_TYPE;
         uint16_t port_number;
         uint32_t stream_id_length;
-        const char *stream_id;
+        std::string stream_id;
         // End Format
 
         bool valid = false;
@@ -31,9 +31,9 @@ namespace glasgow_ustream {
          * Constructs a PeerDiscoveryReplyPacket for a stream_id
          * @param stream_id the stream identifier to announce.
          */
-        explicit PeerDiscoveryReplyPacket(uint16_t port_number, const char *stream_id) :
+        explicit PeerDiscoveryReplyPacket(uint16_t port_number, std::string stream_id) :
                 port_number(port_number), stream_id(stream_id) {
-            stream_id_length = strlen(stream_id) + 1; // + 1 for \0
+            stream_id_length = (uint32_t) stream_id.length() + 1; // + 1 for \0
             valid = true;
         }
 
@@ -72,7 +72,7 @@ namespace glasgow_ustream {
             valid = true;
         }
 
-        const char *get_stream_id() {
+        std::string get_stream_id() {
             return stream_id;
         }
 
@@ -107,7 +107,7 @@ namespace glasgow_ustream {
             *((uint32_t *) ptr) = stream_id_length;
             ptr += sizeof(uint32_t);
 
-            memcpy(ptr, stream_id, stream_id_length);
+            memcpy(ptr, stream_id.c_str(), stream_id_length);
 
             return {packet_size, packet};
         }

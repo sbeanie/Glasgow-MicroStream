@@ -17,7 +17,7 @@ namespace glasgow_ustream {
 
     private:
 
-        const char *stream_id;
+        std::string stream_id;
 
         uint16_t tcp_port = 0; // Default 0 binds to any available port.
         int listen_socket_fd = 0;
@@ -59,14 +59,14 @@ namespace glasgow_ustream {
          * random port.
          * @param stream_id the stream identifier to use.
          */
-        explicit PeerSender(const char *stream_id) : stream_id(stream_id) {}
+        explicit PeerSender(std::string stream_id) : stream_id(stream_id) {}
 
         /**
          * Constructs a peer sender responsible for publishing a stream to the peer discovery protocol.  It binds to the
          * specified port.
          * @param stream_id the stream identifier to use.
          */
-        PeerSender(const char *stream_id, uint16_t tcp_port) : stream_id(stream_id), tcp_port(tcp_port) {}
+        PeerSender(std::string stream_id, uint16_t tcp_port) : stream_id(stream_id), tcp_port(tcp_port) {}
 
         bool has_connections() {
             std::lock_guard<std::recursive_mutex> lock(subscriber_sockets_lock);
@@ -77,7 +77,7 @@ namespace glasgow_ustream {
             return tcp_port;
         }
 
-        const char *get_stream_id() {
+        std::string get_stream_id() {
             return stream_id;
         }
 

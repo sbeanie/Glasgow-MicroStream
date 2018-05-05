@@ -118,7 +118,7 @@ namespace glasgow_ustream {
          * @param stream_id the stream identifier to which data should be published.
          * @param data the raw data in bytes.
          */
-        void send_network_data(const char *stream_id, std::pair<uint32_t, void *> data) {
+        void send_network_data(std::string stream_id, std::pair<uint32_t, void *> data) {
             peerDiscoverer->send_network_data(stream_id, data);
         }
 
@@ -128,7 +128,7 @@ namespace glasgow_ustream {
          * to a default port.
          * @param stream_id the stream identifier.
          */
-        void addNetworkSink(const char *stream_id) {
+        void addNetworkSink(std::string stream_id) {
             if (peerDiscoverer == nullptr) {
                 std::cerr << "Cannot add a network sink with peer discovery disabled." << std::endl;
                 exit(1);
@@ -143,7 +143,7 @@ namespace glasgow_ustream {
          * @param stream_id the stream identifier.
          * @param tcp_port the tcp port the peer sender should bind to.
          */
-        void addNetworkSink(const char *stream_id, uint16_t tcp_port) {
+        void addNetworkSink(std::string stream_id, uint16_t tcp_port) {
             if (peerDiscoverer == nullptr) {
                 std::cerr << "Cannot add a network sink with peer discovery disabled." << std::endl;
                 exit(1);
@@ -161,7 +161,7 @@ namespace glasgow_ustream {
          */
         template<typename T>
         optional<NetworkSource<T> *>
-        addNetworkSource(const char *stream_id, optional<T> (*deserialize_func)(std::pair<uint32_t, void *>)) {
+        addNetworkSource(std::string stream_id, optional<T> (*deserialize_func)(std::pair<uint32_t, void *>)) {
             if (peerDiscoverer == nullptr) {
                 std::cerr << "Cannot add a network source with peer discovery disabled." << std::endl;
                 exit(1);
@@ -187,7 +187,7 @@ namespace glasgow_ustream {
          * @return A reference to the BoostSerializedNetworkSource topology node.
          */
         template<typename T>
-        optional<BoostSerializedNetworkSource<T> *> addBoostSerializedNetworkSource(const char *stream_id) {
+        optional<BoostSerializedNetworkSource<T> *> addBoostSerializedNetworkSource(std::string stream_id) {
             if (peerDiscoverer == nullptr) {
                 std::cerr << "Cannot add a network source with peer discovery disabled." << std::endl;
                 exit(1);

@@ -22,7 +22,7 @@ namespace glasgow_ustream {
     private:
 
         PeerDiscoverer *peerDiscoverer;
-        char *stream_id;
+        std::string stream_id;
 
         StreamPacketDataReceiver *streamPacketDataReceiver;
 
@@ -49,15 +49,12 @@ namespace glasgow_ustream {
          * @param port_number the port the stream is hosted on the source's device.
          * @param streamPacketDataReceiver the deserializer that the data received should be forwarded to.
          */
-        PeerListener(PeerDiscoverer *peerDiscoverer, const char *stream_id, in_addr source_addr, uint16_t port_number,
+        PeerListener(PeerDiscoverer *peerDiscoverer, std::string stream_id, in_addr source_addr, uint16_t port_number,
                      StreamPacketDataReceiver *streamPacketDataReceiver) :
-                peerDiscoverer(peerDiscoverer), streamPacketDataReceiver(streamPacketDataReceiver),
+                peerDiscoverer(peerDiscoverer), stream_id(stream_id), streamPacketDataReceiver(streamPacketDataReceiver),
                 port_number(port_number), source_addr(source_addr) {
             this->should_run = true;
             this->should_process_data = false;
-
-            this->stream_id = (char *) malloc(strlen(stream_id) + 1);
-            strcpy(this->stream_id, stream_id);
 
             this->thread = std::thread(&PeerListener::run, this);
         }
@@ -98,7 +95,6 @@ namespace glasgow_ustream {
         }
 
         ~PeerListener() {
-            free(stream_id);
         }
 
     };

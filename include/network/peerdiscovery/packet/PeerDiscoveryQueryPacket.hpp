@@ -16,7 +16,7 @@ namespace glasgow_ustream {
         // Format of a query packet
         uint8_t packet_type = PEER_DISCOVERY_QUERY_PACKET_TYPE;
         uint32_t stream_id_length;
-        const char *stream_id;
+        std::string stream_id;
         // End format
 
         bool valid = false;
@@ -29,8 +29,8 @@ namespace glasgow_ustream {
          * Constructs a PeerDiscoveryQueryPacket for a stream_id
          * @param stream_id the stream identifier to query for.
          */
-        explicit PeerDiscoveryQueryPacket(const char *stream_id) : stream_id(stream_id) {
-            stream_id_length = (uint32_t) strlen(stream_id) + 1; // + 1 for \0
+        explicit PeerDiscoveryQueryPacket(std::string stream_id) : stream_id(stream_id) {
+            stream_id_length = (uint32_t) stream_id.length() + 1; // + 1 for \0
             valid = true;
         }
 
@@ -66,7 +66,7 @@ namespace glasgow_ustream {
             valid = true;
         }
 
-        const char *get_stream_id() {
+        std::string get_stream_id() {
             return stream_id;
         }
 
@@ -93,7 +93,7 @@ namespace glasgow_ustream {
             *((uint32_t *) ptr) = stream_id_length;
             ptr += sizeof(uint32_t);
 
-            memcpy(ptr, stream_id, stream_id_length);
+            memcpy(ptr, stream_id.c_str(), stream_id_length);
 
             return {packet_size, packet};
         }

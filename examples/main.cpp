@@ -59,7 +59,7 @@ int main(int, char**) {
 
     auto window_batch = window->batch(std::chrono::seconds(1), int_values_printer);
 
-    topology->run();
+    topology->run_with_threads();
 
     // If window->stop() is called before the window thread is done processing, the thread may die before processing data.
     std::this_thread::sleep_for(std::chrono::seconds(10));

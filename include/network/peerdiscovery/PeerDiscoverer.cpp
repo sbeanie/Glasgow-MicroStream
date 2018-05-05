@@ -76,7 +76,7 @@ namespace glasgow_ustream {
         premature_shutdown_listener_list.clear();
     }
 
-    void PeerDiscoverer::unregister_peer_listener(const char *stream_id, PeerListener *peerListener) {
+    void PeerDiscoverer::unregister_peer_listener(std::string stream_id, PeerListener *peerListener) {
         std::lock_guard<std::recursive_mutex> lock_search(search_lock);
         bool peerListenerFound = false;
         auto ptr = stream_ids_to_search_for.find(stream_id);
@@ -110,7 +110,7 @@ namespace glasgow_ustream {
         } else if (packet_type == PEER_DISCOVERY_QUERY_PACKET_TYPE) {
             auto peerDiscoveryQueryPacket = new PeerDiscoveryQueryPacket(data);
             if (peerDiscoveryQueryPacket->is_valid()) {
-                const char *stream_id = peerDiscoveryQueryPacket->get_stream_id();
+                std::string stream_id = peerDiscoveryQueryPacket->get_stream_id();
                 std::lock_guard<std::recursive_mutex> lock(publish_lock);
                 auto ptr = stream_ids_to_publish.find(stream_id);
                 if (ptr != stream_ids_to_publish.end()) {
@@ -119,11 +119,12 @@ namespace glasgow_ustream {
             } else {
                 std::cout << "Failed to parse query packet." << std::endl;
             }
+
             delete (peerDiscoveryQueryPacket);
         } else if (packet_type == PEER_DISCOVERY_REPLY_PACKET_TYPE) {
             auto peerDiscoveryReplyPacket = new PeerDiscoveryReplyPacket(data);
             if (peerDiscoveryReplyPacket->is_valid()) {
-                const char *stream_id = peerDiscoveryReplyPacket->get_stream_id();
+                std::string stream_id = peerDiscoveryReplyPacket->get_stream_id();
                 std::lock_guard<std::recursive_mutex> lock(search_lock);
                 auto ptr = stream_ids_to_search_for.find(stream_id);
                 if (ptr != stream_ids_to_search_for.end()) {
@@ -243,7 +244,7 @@ namespace glasgow_ustream {
 
 
     template<typename T>
-    bool PeerDiscoverer::add_network_source(NetworkSource<T> *networkSource, const char *stream_id) {
+    bool PeerDiscoverer::add_network_source(NetworkSource<T> *networkSource, std::string stream_id) {
         std::lock_guard<std::recursive_mutex> lock(search_lock);
         auto ptr = stream_ids_to_search_for.find(stream_id);
         if (ptr == stream_ids_to_search_for.end()) {
@@ -257,11 +258,11 @@ namespace glasgow_ustream {
         return false;
     }
 
-    void PeerDiscoverer::register_network_sink(const char *stream_id) {
+    void PeerDiscoverer::register_network_sink(std::string stream_id) {
         this->register_network_sink(stream_id, 0); // 0 means any port available
     }
 
-    void PeerDiscoverer::register_network_sink(const char *stream_id, uint16_t tcp_port) {
+    void PeerDiscoverer::register_network_sink(std::string stream_id, uint16_t tcp_port) {
         std::lock_guard<std::recursive_mutex> lock(publish_lock);
         PeerSender *peerSender = nullptr;
         auto ptr = stream_ids_to_publish.find(stream_id);
@@ -281,7 +282,7 @@ namespace glasgow_ustream {
         send_peer_discovery_reply(peerSender);
     }
 
-    bool PeerDiscoverer::listener_already_exists(const char *stream_id, in_addr source_addr, uint16_t source_port) {
+    bool PeerDiscoverer::listener_already_exists(std::string stream_id, in_addr source_addr, uint16_t source_port) {
         std::lock_guard<std::recursive_mutex> lock(search_lock);
         auto ptr = stream_ids_to_search_for.find(stream_id);
         if (ptr != stream_ids_to_search_for.end()) {
@@ -299,7 +300,7 @@ namespace glasgow_ustream {
 
 
     // SENDING
-    void PeerDiscoverer::send_network_data(const char *stream_id, std::pair<uint32_t, void *> data) {
+    void PeerDiscoverer::send_network_data(std::string stream_id, std::pair<uint32_t, void *> data) {
         // Construct a stream packet to encapsulate the data and allow the receivers to delimit the tcp stream.
         auto *stream_packet = new StreamPacket(data, false);
         std::pair<uint32_t, void *> stream_packet_data = stream_packet->get_packet();
@@ -335,7 +336,7 @@ namespace glasgow_ustream {
         delete (peerDiscoveryReplyPacket);
     }
 
-    void PeerDiscoverer::send_peer_discovery_query(const char *stream_id) {
+    void PeerDiscoverer::send_peer_discovery_query(std::string stream_id) {
         auto *peerDiscoveryQueryPacket = new PeerDiscoveryQueryPacket(stream_id);
 
         auto packet_data = peerDiscoveryQueryPacket->get_packet_data();

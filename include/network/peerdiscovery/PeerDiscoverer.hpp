@@ -69,7 +69,7 @@ namespace glasgow_ustream {
          * @param source_port
          * @return Returns true if it does, false otherwise.
          */
-        bool listener_already_exists(const char *stream_id, in_addr source_addr, uint16_t source_port);
+        bool listener_already_exists(std::string stream_id, in_addr source_addr, uint16_t source_port);
 
         /**
          * Starts the peer discoverer protocol's listener thread.  This thread listens for multicast messages and
@@ -93,7 +93,7 @@ namespace glasgow_ustream {
          * Sends a query to the multicast group, looking for the stream identifier specified.
          * @param stream_id the stream identifier that should be externally sourced.
          */
-        void send_peer_discovery_query(const char *stream_id);
+        void send_peer_discovery_query(std::string stream_id);
 
         /**
          * Cleans up resources left behind by failed peer listeners.
@@ -110,27 +110,27 @@ namespace glasgow_ustream {
         bool check_connected();
 
         template<typename T>
-        bool add_network_source(NetworkSource<T> *networkSource, const char *stream_id);
+        bool add_network_source(NetworkSource<T> *networkSource, std::string stream_id);
 
         /**
          * Registers a stream id to make public using the peer discovery protocol.  This method binds to any port available.
          * @param stream_id the stream identifier.
          */
-        void register_network_sink(const char *stream_id);
+        void register_network_sink(std::string stream_id);
 
         /**
          * Registers a stream id to make public using the peer discovery protocol.
          * @param stream_id the stream idendtifier.
          * @param tcp_port the port to bind the publisher to.
          */
-        void register_network_sink(const char *stream_id, uint16_t tcp_port);
+        void register_network_sink(std::string stream_id, uint16_t tcp_port);
 
         /**
          * Publishes data via the PeerDiscoverer's PeerSender.
          * @param stream_id the stream identifier to publish the data for.
          * @param data the data in raw bytes.
          */
-        void send_network_data(const char *stream_id, std::pair<uint32_t, void *> data);
+        void send_network_data(std::string stream_id, std::pair<uint32_t, void *> data);
 
         /**
          * Tells the peer listeners to start processing data they receive.
@@ -153,7 +153,7 @@ namespace glasgow_ustream {
          * @param stream_id the stream identifier of the peer listener.
          * @param peerListener a reference to the peer listener object.
          */
-        void unregister_peer_listener(const char *stream_id, PeerListener *peerListener);
+        void unregister_peer_listener(std::string stream_id, PeerListener *peerListener);
 
         void set_broadcast_period(std::chrono::duration<double> broadcast_period) {
             this->broadcast_period = broadcast_period;
