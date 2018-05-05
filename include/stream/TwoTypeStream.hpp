@@ -151,7 +151,7 @@ namespace glasgow_ustream {
          * @return
          */
         NetworkSink<OUTPUT_TYPE> *
-        networkSink(Topology *topology, const char *stream_id, std::pair<uint32_t, void *> (*val_to_bytes)(OUTPUT_TYPE)) {
+        networkSink(Topology *topology, std::string stream_id, std::pair<uint32_t, void *> (*val_to_bytes)(OUTPUT_TYPE)) {
             auto *networkSink = new NetworkSink<OUTPUT_TYPE>(topology, stream_id, val_to_bytes);
             this->subscribe(networkSink);
             return networkSink;
@@ -166,7 +166,7 @@ namespace glasgow_ustream {
          * @param stream_id The stream identifier stream values should be published to via the peer discovery protocol.
          * @return a reference to a NetworkSink object.
          */
-        NetworkSink<OUTPUT_TYPE> *boostSerializedNetworkSink(Topology *topology, const char *stream_id) {
+        NetworkSink<OUTPUT_TYPE> *boostSerializedNetworkSink(Topology *topology, std::string stream_id) {
             auto *networkSink = new BoostSerializedNetworkSink<OUTPUT_TYPE>(topology, stream_id);
             this->subscribe(networkSink);
             return networkSink;

@@ -16,18 +16,18 @@ namespace glasgow_ustream {
     private:
 
         Topology *topology;
-        const char *stream_id;
+        std::string stream_id;
 
     protected:
         std::pair<uint32_t, void *> (*val_to_bytes)(T) = nullptr;
 
     public:
 
-        NetworkSink(Topology *topology, const char *stream_id) : topology(topology), stream_id(stream_id) {
+        NetworkSink(Topology *topology, std::string stream_id) : topology(topology), stream_id(stream_id) {
             topology->addNetworkSink(stream_id);
         }
 
-        NetworkSink(Topology *topology, const char *stream_id, std::pair<uint32_t, void *> (*val_to_bytes)(T)) :
+        NetworkSink(Topology *topology, std::string stream_id, std::pair<uint32_t, void *> (*val_to_bytes)(T)) :
                 topology(topology), stream_id(stream_id), val_to_bytes(val_to_bytes) {
             topology->addNetworkSink(stream_id);
         }

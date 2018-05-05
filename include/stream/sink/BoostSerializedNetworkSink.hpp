@@ -19,7 +19,7 @@ namespace glasgow_ustream {
 
     public:
 
-        BoostSerializedNetworkSink(Topology *topology, const char *stream_id) : NetworkSink<T>(topology, stream_id) {
+        BoostSerializedNetworkSink(Topology *topology, std::string stream_id) : NetworkSink<T>(topology, stream_id) {
             // Override the NetworkSink's val_to_bytes function to be one that utilizes boost serialization for the type/class.
             this->val_to_bytes = [](T val) {
                 std::string serial_str;
