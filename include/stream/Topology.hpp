@@ -104,6 +104,15 @@ namespace glasgow_ustream {
             return iterableSource;
         }
 
+        template <typename T>
+        Stream<T>* union_streams(std::list<Subscribeable<T>*> streams) {
+            Stream<T>* unioned_stream = new Stream<T>();
+            for (auto &subscribeable : streams) {
+                subscribeable->subscribe(unioned_stream);
+            }
+            return unioned_stream;
+        }
+
         /**
          * Redefines the broadcast period for the peer discovery protocol.
          * @param period The new period.
