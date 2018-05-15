@@ -47,6 +47,7 @@ namespace glasgow_ustream {
             if (optionalValue.is_initialized()) {
                 this->publish(optionalValue.value());
             }
+            free(data.second);
         }
     };
 }

@@ -207,7 +207,9 @@ namespace glasgow_ustream {
         }
 
         std::pair<uint32_t, void *> get_stream_data() {
-            return {data_length, data};
+            void *aligned_data_ptr = malloc((size_t) data_length);
+            memcpy(aligned_data_ptr, data, (size_t) data_length);
+            return {data_length, aligned_data_ptr};
         }
 
         bool is_invalid() {
