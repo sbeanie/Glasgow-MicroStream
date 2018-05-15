@@ -27,9 +27,18 @@ namespace glasgow_ustream {
             topology->addNetworkSink(stream_id);
         }
 
+        NetworkSink(Topology *topology, std::string stream_id, uint16_t port) : topology(topology), stream_id(stream_id) {
+            topology->addNetworkSink(stream_id, port);
+        }
+
         NetworkSink(Topology *topology, std::string stream_id, std::pair<uint32_t, void *> (*val_to_bytes)(T)) :
                 topology(topology), stream_id(stream_id), val_to_bytes(val_to_bytes) {
             topology->addNetworkSink(stream_id);
+        }
+
+        NetworkSink(Topology *topology, std::string stream_id, uint16_t port, std::pair<uint32_t, void *> (*val_to_bytes)(T)) :
+                topology(topology), stream_id(stream_id), val_to_bytes(val_to_bytes) {
+            topology->addNetworkSink(stream_id, port);
         }
 
         void receive(T val) {

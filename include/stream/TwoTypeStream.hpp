@@ -157,6 +157,22 @@ namespace glasgow_ustream {
             return networkSink;
         }
 
+        /**
+         * Sinks data into the network via the peer discovery protocol.
+         * @param topology
+         * @param stream_id The name of the stream where data should be published.
+         * @param tcp_port The port to bind the network sink to.
+         * @param val_to_bytes This function should return a pointer to a region of memory, and its size.  The region of memory
+         * is freed upon data transmission.
+         * @return
+         */
+        NetworkSink<OUTPUT_TYPE> *
+        networkSink(Topology *topology, std::string stream_id, uint16_t tcp_port, std::pair<uint32_t, void *> (*val_to_bytes)(OUTPUT_TYPE)) {
+            auto *networkSink = new NetworkSink<OUTPUT_TYPE>(topology, stream_id, tcp_port, val_to_bytes);
+            this->subscribe(networkSink);
+            return networkSink;
+        }
+
 #ifdef COMPILE_WITH_BOOST_SERIALIZATION
 
         /**
@@ -168,6 +184,20 @@ namespace glasgow_ustream {
          */
         NetworkSink<OUTPUT_TYPE> *boostSerializedNetworkSink(Topology *topology, std::string stream_id) {
             auto *networkSink = new BoostSerializedNetworkSink<OUTPUT_TYPE>(topology, stream_id);
+            this->subscribe(networkSink);
+            return networkSink;
+        }
+
+        /**
+         * If boost serialization is enabled via the compilation flag COMPILE_WITH_BOOST_SERIALIZATION, this method can
+         * be used to make serialization/deserialization of types/classes more simple.
+         * @param topology The topology reference.
+         * @param stream_id The stream identifier stream values should be published to via the peer discovery protocol.
+         * @param tcp_port The tcp port to bind to.
+         * @return a reference to a NetworkSink object.
+         */
+        NetworkSink<OUTPUT_TYPE> *boostSerializedNetworkSink(Topology *topology, std::string stream_id, uint16_t tcp_port) {
+            auto *networkSink = new BoostSerializedNetworkSink<OUTPUT_TYPE>(topology, stream_id, tcp_port);
             this->subscribe(networkSink);
             return networkSink;
         }
