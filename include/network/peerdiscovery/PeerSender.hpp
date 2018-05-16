@@ -92,7 +92,7 @@ namespace glasgow_ustream {
             }
             std::unordered_map<int, struct sockaddr_in>::iterator itr = subscriber_sockets.begin();
             while (itr != subscriber_sockets.end()) {
-                ssize_t bytes_sent = send(itr->first, data.second, data.first, 0);
+                ssize_t bytes_sent = send(itr->first, data.second, data.first, MSG_NOSIGNAL);
                 if (bytes_sent < 0) {
                     std::cerr << "[" << stream_id << "] Failed to send ("
                               << strerror(errno)
