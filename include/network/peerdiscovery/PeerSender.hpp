@@ -1,6 +1,12 @@
 #ifndef GU_EDGENT_PEERSENDER_HPP
 #define GU_EDGENT_PEERSENDER_HPP
 
+#ifdef MSG_NOSIGNAL
+#define SEND_DATA_SIGNAL MSG_NOSIGNAL
+#else
+#define SEND_DATA_SIGNAL 0
+#endif
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -92,7 +98,7 @@ namespace glasgow_ustream {
             }
             std::unordered_map<int, struct sockaddr_in>::iterator itr = subscriber_sockets.begin();
             while (itr != subscriber_sockets.end()) {
-                ssize_t bytes_sent = send(itr->first, data.second, data.first, MSG_NOSIGNAL);
+                ssize_t bytes_sent = send(itr->first, data.second, data.first, SEND_DATA_SIGNAL);
                 if (bytes_sent < 0) {
                     std::cerr << "[" << stream_id << "] Failed to send ("
                               << strerror(errno)
